@@ -5,6 +5,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { TasksPage } from '@/pages/TasksPage'
+import { AnalyticsPage } from '@/pages/AnalyticsPage'
 
 export function App() {
   const { token } = useAuth()
@@ -15,6 +16,7 @@ export function App() {
       <Route path="/register" element={token ? <Navigate to="/" replace /> : <RegisterPage />} />
       <Route path="/" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/tasks" element={<ProtectedRoute><TasksPage /></ProtectedRoute>} />
+      <Route path="/analytics" element={<ProtectedRoute><AnalyticsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to={token ? '/' : '/login'} replace />} />
     </Routes>
   )

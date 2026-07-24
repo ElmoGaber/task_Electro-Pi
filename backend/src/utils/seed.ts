@@ -9,10 +9,17 @@ export const autoSeed = async (): Promise<void> => {
   console.log('Seeding demo user...')
 
   const passwordHash = await bcrypt.hash('demo123456', 10)
+  const adminHash = await bcrypt.hash('admin123456', 10)
   const user = await User.create({
     name: 'Demo User',
     email: 'demo@taskflow.dev',
     passwordHash,
+  })
+  await User.create({
+    name: 'Admin',
+    email: 'admin@taskflow.dev',
+    passwordHash: adminHash,
+    role: 'admin',
   })
 
   const tasks = [

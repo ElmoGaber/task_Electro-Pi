@@ -1,14 +1,18 @@
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect } from 'react'
 import type { Task } from '@/types'
+import jsPDF from 'jspdf'
+import html2canvas from 'html2canvas'
 
 interface ExportMenuProps {
   tasks: Task[] | undefined
+  pageRef?: React.RefObject<HTMLDivElement | null>
 }
 
-export function ExportMenu({ tasks }: ExportMenuProps) {
+export function ExportMenu({ tasks, pageRef }: ExportMenuProps) {
   const { t } = useTranslation()
   const [open, setOpen] = useState(false)
+  const [exportingPDF, setExportingPDF] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,6 +39,37 @@ export function ExportMenu({ tasks }: ExportMenuProps) {
     setOpen(false)
   }
 
+  const exportPDF = async () => {
+    if (!tasks?.length) return
+    setExportingPDF(true)
+    try {
+      const element = pageRef?.current || document.querySelector('.task-list') || document.querySelector('main')
+      if (!element) return
+      const canvas = await html2canvas(element as HTMLElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' })
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pdfWidth = pdf.internal.pageSize.getWidth()
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width
+      let heightLeft = pdfHeight
+      let position = 0
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight)
+      heightLeft -= pageHeight
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight)
+        heightLeft -= pageHeight
+      }
+      pdf.save('tasks.pdf')
+    } catch {
+      // fallback
+    } finally {
+      setExportingPDF(false)
+      setOpen(false)
+    }
+  }
+
   return (
     <div className="export-menu" ref={ref}>
       <button className="button button-secondary button-sm" onClick={() => setOpen(!open)}>
@@ -44,6 +79,9 @@ export function ExportMenu({ tasks }: ExportMenuProps) {
         <div className="export-dropdown">
           <button onClick={exportCSV}>{t('export.csv')}</button>
           <button onClick={exportJSON}>{t('export.json')}</button>
+          <button onClick={exportPDF} disabled={exportingPDF}>
+            {exportingPDF ? t('settings.saving', 'Exporting...') : t('export.pdf')}
+          </button>
         </div>
       )}
     </div>

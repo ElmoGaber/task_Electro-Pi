@@ -63,3 +63,8 @@ export const deleteTask = async (req: AuthRequest, res: Response): Promise<Respo
 
   return res.status(200).json({ message: 'Task deleted successfully.' })
 }
+
+export const listAllTasks = async (req: AuthRequest, res: Response): Promise<Response> => {
+  const tasks = await Task.find().populate('user', 'name email').sort({ createdAt: -1 })
+  return res.status(200).json({ tasks })
+}

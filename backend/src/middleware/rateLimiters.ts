@@ -10,3 +10,14 @@ export const loginRateLimiter = rateLimit({
     code: 'RATE_LIMITED',
   },
 })
+
+export const apiRateLimiter = rateLimit({
+  windowMs: Number(process.env.API_RATE_LIMIT_WINDOW_MS || 60 * 1000),
+  max: Number(process.env.API_RATE_LIMIT_MAX || 60),
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    message: 'Too many requests. Please slow down.',
+    code: 'RATE_LIMITED',
+  },
+})

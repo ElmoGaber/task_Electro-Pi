@@ -77,6 +77,10 @@
     "report": "تقرير",
     "summary": "ملخص"
   },
+  "analytics": {
+    "byStatus": "المهام حسب الحالة",
+    "byPriority": "المهام حسب الأولوية"
+  },
   "settings": {
     "language": "اللغة",
     "fontSize": "حجم الخط",

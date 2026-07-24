@@ -77,6 +77,10 @@
     "report": "Report",
     "summary": "Summary"
   },
+  "analytics": {
+    "byStatus": "Tasks by Status",
+    "byPriority": "Tasks by Priority"
+  },
   "settings": {
     "language": "Language",
     "fontSize": "Font Size",

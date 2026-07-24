@@ -1,6 +1,7 @@
 import { Router } from 'express'
-import { createTask, deleteTask, listTasks, updateTask } from '../controllers/taskController'
+import { createTask, deleteTask, listTasks, updateTask, listAllTasks } from '../controllers/taskController'
 import { authMiddleware } from '../middleware/authMiddleware'
+import { requireRole } from '../middleware/requireRole'
 import { validateRequest } from '../middleware/validateRequest'
 import {
   createTaskValidator,
@@ -16,5 +17,6 @@ router.get('/', listTaskValidator, validateRequest, listTasks)
 router.post('/', createTaskValidator, validateRequest, createTask)
 router.put('/:id', updateTaskValidator, validateRequest, updateTask)
 router.delete('/:id', deleteTaskValidator, validateRequest, deleteTask)
+router.get('/all', requireRole('admin'), listAllTasks)
 
 export = router

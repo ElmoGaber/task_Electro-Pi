@@ -4,11 +4,6 @@ import { useAuth } from '@/context/useAuth'
 
 const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
 
-interface PresenceData {
-  userId: string
-  socketId: string
-}
-
 interface TypingData {
   userId: string
   taskId?: string

@@ -86,6 +86,9 @@ export function DashboardPage() {
           <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/tasks')}>
             {t('dashboard.tasks')}
           </button>
+          <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/analytics')}>
+            {t('dashboard.analytics')}
+          </button>
           <button className="button button-secondary button-sm" type="button" onClick={logout}>
             {t('dashboard.logout')}
           </button>
