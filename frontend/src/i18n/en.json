@@ -1,0 +1,98 @@
+{
+  "app": {
+    "title": "TaskFlow",
+    "welcome": "Welcome back, {{name}}",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "notFound": "Page not found"
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Create account",
+    "email": "Email address",
+    "password": "Password",
+    "name": "Full name",
+    "signIn": "Sign in",
+    "signUp": "Create account",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "createOne": "Create one",
+    "loggingIn": "Please wait...",
+    "loginSuccess": "Logged in successfully.",
+    "registerSuccess": "Account created successfully!",
+    "welcomeBack": "Welcome back",
+    "getStarted": "Get started",
+    "loginSubtitle": "Sign in to access your tasks and stay on track.",
+    "registerSubtitle": "Create an account and start managing your tasks.",
+    "heroTitle": "TaskFlow",
+    "heroSubtitle": "Organize your work, boost your productivity, and never miss a deadline."
+  },
+  "dashboard": {
+    "title": "TaskFlow",
+    "tasks": "Tasks",
+    "analytics": "Analytics",
+    "createTask": "Create Task",
+    "updateTask": "Update Task",
+    "saveChanges": "Save Changes",
+    "addTask": "Add Task",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "noTasks": "No tasks yet",
+    "noTasksDesc": "Your board is empty. Create your first task to get started.",
+    "noMatch": "No matching tasks found",
+    "noMatchDesc": "Try adjusting your search or filters.",
+    "total": "total",
+    "toDo": "to do",
+    "inProgress": "in progress",
+    "done": "done",
+    "searchFilter": "Search & Filter",
+    "searchPlaceholder": "Search title...",
+    "status": "Status",
+    "priority": "Priority",
+    "all": "All",
+    "clearFilters": "Clear Filters",
+    "dueDate": "Due Date",
+    "overdue": "Overdue",
+    "logout": "Logout",
+    "deleteConfirm": "Are you sure you want to delete this task? This action cannot be undone.",
+    "deleteTitle": "Delete Task",
+    "taskCreated": "Task created successfully.",
+    "taskUpdated": "Task updated successfully.",
+    "taskDeleted": "Task deleted successfully.",
+    "export": "Export"
+  },
+  "tasks": {
+    "title": "All Tasks",
+    "subtitle": "View and manage all your tasks in one place",
+    "backToDashboard": "Back to Dashboard"
+  },
+  "export": {
+    "csv": "Export as CSV",
+    "json": "Export as JSON",
+    "pdf": "Export as PDF",
+    "report": "Report",
+    "summary": "Summary"
+  },
+  "settings": {
+    "language": "Language",
+    "fontSize": "Font Size",
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large",
+    "reducedMotion": "Reduced Motion"
+  },
+  "status": {
+    "To Do": "To Do",
+    "In Progress": "In Progress",
+    "Done": "Done"
+  },
+  "priority": {
+    "Low": "Low",
+    "Medium": "Medium",
+    "High": "High"
+  }
+}

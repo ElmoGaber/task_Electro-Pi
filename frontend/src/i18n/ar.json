@@ -1,0 +1,98 @@
+{
+  "app": {
+    "title": "تاسك فلو",
+    "welcome": "مرحبًا بعودتك، {{name}}",
+    "loading": "جارٍ التحميل...",
+    "error": "حدث خطأ ما",
+    "retry": "حاول مرة أخرى",
+    "notFound": "الصفحة غير موجودة"
+  },
+  "auth": {
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب",
+    "email": "البريد الإلكتروني",
+    "password": "كلمة المرور",
+    "name": "الاسم الكامل",
+    "signIn": "تسجيل الدخول",
+    "signUp": "إنشاء حساب",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "createOne": "أنشئ واحدًا",
+    "loggingIn": "جارٍ الانتظار...",
+    "loginSuccess": "تم تسجيل الدخول بنجاح.",
+    "registerSuccess": "تم إنشاء الحساب بنجاح!",
+    "welcomeBack": "مرحبًا بعودتك",
+    "getStarted": "ابدأ الآن",
+    "loginSubtitle": "سجّل الدخول للوصول إلى مهامك والبقاء على المسار الصحيح.",
+    "registerSubtitle": "أنشئ حسابًا وابدأ في إدارة مهامك.",
+    "heroTitle": "تاسك فلو",
+    "heroSubtitle": "نظّم عملك، عزز إنتاجيتك، ولا تفوّت أي موعد نهائي."
+  },
+  "dashboard": {
+    "title": "تاسك فلو",
+    "tasks": "المهام",
+    "analytics": "التحليلات",
+    "createTask": "إنشاء مهمة",
+    "updateTask": "تحديث المهمة",
+    "saveChanges": "حفظ التغييرات",
+    "addTask": "إضافة مهمة",
+    "saving": "جارٍ الحفظ...",
+    "cancel": "إلغاء",
+    "edit": "تعديل",
+    "delete": "حذف",
+    "deleting": "جارٍ الحذف...",
+    "noTasks": "لا توجد مهام بعد",
+    "noTasksDesc": "لوحتك فارغة. أنشئ مهمتك الأولى للبدء.",
+    "noMatch": "لا توجد مهام مطابقة",
+    "noMatchDesc": "حاول تعديل البحث أو الفلاتر.",
+    "total": "الإجمالي",
+    "toDo": "للتنفيذ",
+    "inProgress": "قيد التنفيذ",
+    "done": "مكتمل",
+    "searchFilter": "بحث وتصفية",
+    "searchPlaceholder": "ابحث بالعنوان...",
+    "status": "الحالة",
+    "priority": "الأولوية",
+    "all": "الكل",
+    "clearFilters": "مسح الفلاتر",
+    "dueDate": "تاريخ الاستحقاق",
+    "overdue": "متأخر",
+    "logout": "تسجيل الخروج",
+    "deleteConfirm": "هل أنت متأكد من حذف هذه المهمة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "deleteTitle": "حذف المهمة",
+    "taskCreated": "تم إنشاء المهمة بنجاح.",
+    "taskUpdated": "تم تحديث المهمة بنجاح.",
+    "taskDeleted": "تم حذف المهمة بنجاح.",
+    "export": "تصدير"
+  },
+  "tasks": {
+    "title": "جميع المهام",
+    "subtitle": "عرض وإدارة جميع مهامك في مكان واحد",
+    "backToDashboard": "العودة إلى لوحة التحكم"
+  },
+  "export": {
+    "csv": "تصدير كـ CSV",
+    "json": "تصدير كـ JSON",
+    "pdf": "تصدير كـ PDF",
+    "report": "تقرير",
+    "summary": "ملخص"
+  },
+  "settings": {
+    "language": "اللغة",
+    "fontSize": "حجم الخط",
+    "small": "صغير",
+    "medium": "متوسط",
+    "large": "كبير",
+    "reducedMotion": "تقليل الحركة"
+  },
+  "status": {
+    "To Do": "للتنفيذ",
+    "In Progress": "قيد التنفيذ",
+    "Done": "مكتمل"
+  },
+  "priority": {
+    "Low": "منخفض",
+    "Medium": "متوسط",
+    "High": "عالي"
+  }
+}
