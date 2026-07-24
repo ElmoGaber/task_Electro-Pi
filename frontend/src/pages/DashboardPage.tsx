@@ -1,0 +1,140 @@
+import { useCallback, useMemo, useState } from 'react'
+import { toast } from 'sonner'
+import { TaskForm } from '@/components/TaskForm'
+import { TaskFilters } from '@/components/TaskFilters'
+import { TaskList } from '@/components/TaskList'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { useAuth } from '@/context/useAuth'
+import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask } from '@/hooks/useTasks'
+import type { Task, TaskFiltersState, TaskFormValues } from '@/types'
+
+export function DashboardPage() {
+  const { user, logout } = useAuth()
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [filters, setFilters] = useState<TaskFiltersState>({
+    search: '',
+    status: '',
+    priority: '',
+  })
+
+  const queryParams = useMemo(() => {
+    const params: Record<string, string> = {}
+    if (filters.search.trim()) params.search = filters.search.trim()
+    if (filters.status) params.status = filters.status
+    if (filters.priority) params.priority = filters.priority
+    return params
+  }, [filters])
+
+  const { data: tasks, isLoading, error } = useTaskList(queryParams)
+
+  const hasFilters = Boolean(filters.search || filters.status || filters.priority)
+
+  const { mutateAsync: createTask, isPending: isCreating } = useCreateTask()
+  const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTask(
+    editingTask?._id ?? null,
+  )
+  const { mutateAsync: deleteTask, isPending: isDeleting } = useDeleteTask()
+
+  const handleCreate = useCallback(
+    async (values: TaskFormValues) => {
+      try {
+        await createTask(values)
+        toast.success('Task created successfully.')
+      } catch {
+        toast.error('Failed to create task.')
+      }
+    },
+    [createTask],
+  )
+
+  const handleUpdate = useCallback(
+    async (values: TaskFormValues) => {
+      if (!editingTask) return
+      try {
+        await updateTask(values)
+        setEditingTask(null)
+        toast.success('Task updated successfully.')
+      } catch {
+        toast.error('Failed to update task.')
+      }
+    },
+    [updateTask, editingTask],
+  )
+
+  const handleDelete = useCallback(async () => {
+    if (!deleteTarget) return
+    try {
+      await deleteTask(deleteTarget)
+      setDeleteTarget(null)
+      toast.success('Task deleted successfully.')
+    } catch {
+      toast.error('Failed to delete task.')
+    }
+  }, [deleteTask, deleteTarget])
+
+  const handleEdit = useCallback((task: Task) => {
+    setEditingTask(task)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [])
+
+  const handleCancelEdit = useCallback(() => {
+    setEditingTask(null)
+  }, [])
+
+  const saving = isCreating || isUpdating
+
+  return (
+    <main className="container">
+      <header className="page-header card">
+        <div>
+          <h1>Task Manager</h1>
+          <p className="subtle">Hello, {user?.name || 'User'}</p>
+        </div>
+        <button className="button button-secondary" type="button" onClick={logout}>
+          Logout
+        </button>
+      </header>
+
+      <TaskForm
+        key={editingTask?._id ?? 'new'}
+        defaultValues={
+          editingTask
+            ? {
+                title: editingTask.title,
+                description: editingTask.description,
+                status: editingTask.status,
+                priority: editingTask.priority,
+                dueDate: new Date(editingTask.dueDate).toISOString().split('T')[0],
+              }
+            : undefined
+        }
+        onSubmit={editingTask ? handleUpdate : handleCreate}
+        onCancel={handleCancelEdit}
+        saving={saving}
+        isEditing={Boolean(editingTask)}
+      />
+
+      <TaskFilters onChange={setFilters} />
+
+      <TaskList
+        tasks={tasks}
+        loading={isLoading}
+        error={error}
+        hasFilters={hasFilters}
+        onEdit={handleEdit}
+        onDelete={setDeleteTarget}
+        onClearFilters={() => setFilters({ search: '', status: '', priority: '' })}
+      />
+
+      <ConfirmDialog
+        open={Boolean(deleteTarget)}
+        title="Delete Task"
+        message="Are you sure you want to delete this task? This action cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteTarget(null)}
+        loading={isDeleting}
+      />
+    </main>
+  )
+}
