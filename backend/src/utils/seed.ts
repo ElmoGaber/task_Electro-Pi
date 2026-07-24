@@ -1,21 +1,12 @@
-import dotenv from 'dotenv'
 import bcrypt from 'bcryptjs'
-import mongoose from 'mongoose'
-import User from './models/User'
-import Task from './models/Task'
-import { connectDatabase } from './config/db'
+import User from '../models/User'
+import Task from '../models/Task'
 
-dotenv.config()
+export const autoSeed = async (): Promise<void> => {
+  const count = await User.countDocuments()
+  if (count > 0) return
 
-const seed = async (): Promise<void> => {
-  await connectDatabase()
-
-  const existing = await User.findOne({ email: 'demo@taskflow.dev' })
-  if (existing) {
-    console.log('Demo user already exists. Skipping seed.')
-    await mongoose.disconnect()
-    return
-  }
+  console.log('Seeding demo user...')
 
   const passwordHash = await bcrypt.hash('demo123456', 10)
   const user = await User.create({
@@ -36,17 +27,5 @@ const seed = async (): Promise<void> => {
   ]
 
   await Task.insertMany(tasks)
-
-  console.log('Seed complete!')
-  console.log('Login credentials:')
-  console.log('  Email:    demo@taskflow.dev')
-  console.log('  Password: demo123456')
-  console.log(`  Tasks created: ${tasks.length}`)
-
-  await mongoose.disconnect()
+  console.log(`Demo user created — demo@taskflow.dev / demo123456 (${tasks.length} tasks)`)
 }
-
-seed().catch((error) => {
-  console.error('Seed failed:', error)
-  process.exit(1)
-})
