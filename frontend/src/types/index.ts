@@ -17,7 +17,7 @@ export interface ApiError {
   errors?: { field: string; message: string }[]
 }
 
-export type TaskStatus = 'To Do' | 'In Progress' | 'Done'
+export type TaskStatus = 'To Do' | 'In Progress' | 'Editing' | 'Done'
 
 export type TaskPriority = 'Low' | 'Medium' | 'High'
 
