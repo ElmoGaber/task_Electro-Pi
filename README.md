@@ -30,6 +30,7 @@ A professional full-stack task management application built with **MongoDB, Expr
 - Request validation (express-validator) separated from route handlers
 - Custom error classes: `AppError`, `ValidationError`, `UnauthorizedError`, `NotFoundError`
 - Global error handler middleware
+<img width="1719" height="866" alt="image" src="https://github.com/user-attachments/assets/2776cbe2-1f27-4e21-8720-693c74eb569f" />
 
 ### Performance
 - Compression (gzip) via `compression`
