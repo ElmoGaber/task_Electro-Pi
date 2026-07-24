@@ -30,7 +30,7 @@ function pick<T>(arr: T[]): T { return arr[rand(0, arr.length - 1)] }
 function shuffle<T>(arr: T[]): T[] { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = rand(0, i); [a[i], a[j]] = [a[j], a[i]] } return a }
 function dateOffset(days: number) { const d = new Date(); d.setDate(d.getDate() + days); return d.toISOString().split('T')[0] }
 function timeAgo(min: number, max: number) { const m = rand(min, max); if (m < 60) return `${m}m ago`; const h = Math.floor(m / 60); if (h < 24) return `${h}h ago`; return `${Math.floor(h / 24)}d ago` }
-function genId() { return Math.random().toString(36).slice(2, 9) }
+export function genId() { return Math.random().toString(36).slice(2, 9) }
 
 const colors = ['#4F7CFF','#8A4DFF','#FF8A4C','#22C55E','#F59E0B','#EF4444','#FF6B9D','#4DD8FF','#A78BFA','#34D399','#F97316','#EC4899']
 

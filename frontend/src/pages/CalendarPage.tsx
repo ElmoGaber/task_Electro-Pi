@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AppLayout } from '@/components/AppLayout'
-import { fakeEvents } from '@/lib/fakeData'
+import { CreateEventModal } from '@/components/CreateEventModal'
+import { fakeEvents, genId } from '@/lib/fakeData'
 
 const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -12,19 +13,34 @@ export function CalendarPage() {
   const [month, setMonth] = useState(now.getMonth())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [view, setView] = useState<'month' | 'week'>('month')
+  const [events, setEvents] = useState(fakeEvents)
+  const [showEventModal, setShowEventModal] = useState(false)
+  const [toast, setToast] = useState('')
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000) }
+
+  const handleCreateEvent = (data: { title: string; date: string; start: string; end: string; color: string; description: string; location: string }) => {
+    const newEvent = {
+      id: genId(), title: data.title, date: data.date, start: data.start, end: data.end,
+      color: data.color, recurring: false, description: data.description,
+      location: data.location || undefined,
+    }
+    setEvents((prev) => [...prev, newEvent])
+    showToast(`📅 Event "${data.title}" created!`)
+  }
 
   const firstDay = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
   const prevDays = new Date(year, month, 0).getDate()
 
   const eventsByDate = useMemo(() => {
-    const map: Record<string, typeof fakeEvents> = {}
-    fakeEvents.forEach((e) => {
+    const map: Record<string, typeof events> = {}
+    events.forEach((e) => {
       if (!map[e.date]) map[e.date] = []
       map[e.date].push(e)
     })
     return map
-  }, [])
+  }, [events])
 
   const selectedEvents = selectedDate ? eventsByDate[selectedDate] || [] : []
   const todayStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
@@ -64,15 +80,16 @@ export function CalendarPage() {
   return (
     <AppLayout>
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      {toast && <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', background: 'var(--primary)', color: '#fff', padding: '0.75rem 1.2rem', borderRadius: 'var(--radius)', zIndex: 500, fontSize: '0.85rem', boxShadow: 'var(--shadow-lg)' }}>{toast}</div>}
       <div className="page-header-wrap">
-        <div><h1>Calendar</h1><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{fakeEvents.length} scheduled events</p></div>
+        <div><h1>Calendar</h1><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{events.length} scheduled events</p></div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button className="button button-secondary button-sm" onClick={() => { setYear(now.getFullYear()); setMonth(now.getMonth()); setSelectedDate(null) }}>Today</button>
           <div style={{ display: 'flex', gap: '0.2rem' }}>
             <button className="button button-secondary button-sm" onClick={() => navigate(-1)}>‹</button>
             <button className="button button-secondary button-sm" onClick={() => navigate(1)}>›</button>
           </div>
-          <button className="button" style={{ borderRadius: 8 }}>+ New Event</button>
+          <button className="button" style={{ borderRadius: 8 }} onClick={() => setShowEventModal(true)}>+ New Event</button>
         </div>
       </div>
 
@@ -112,6 +129,7 @@ export function CalendarPage() {
           </div>
         )}
       </div>
+      <CreateEventModal open={showEventModal} onClose={() => setShowEventModal(false)} onSubmit={handleCreateEvent} />
     </motion.div>
     </AppLayout>
   )
