@@ -8,6 +8,7 @@ export interface ITask extends Document {
   status: TaskStatus
   priority: TaskPriority
   dueDate: Date
+  media: string[]
   createdAt: Date
   updatedAt: Date
 }
@@ -48,6 +49,10 @@ const taskSchema = new Schema<ITask>(
     dueDate: {
       type: Date,
       required: true,
+    },
+    media: {
+      type: [String],
+      default: [],
     },
   },
   { timestamps: true },

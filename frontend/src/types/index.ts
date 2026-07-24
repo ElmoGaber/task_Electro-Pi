@@ -29,8 +29,13 @@ export interface Task {
   status: TaskStatus
   priority: TaskPriority
   dueDate: string
+  media: string[]
   createdAt: string
   updatedAt: string
+}
+
+export interface TaskStatusUpdate {
+  status: TaskStatus
 }
 
 export interface TaskListResponse {

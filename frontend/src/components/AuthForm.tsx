@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { Spinner } from './Spinner'
 import type { AuthFormValues } from '@/types'
 
@@ -24,6 +25,7 @@ interface AuthFormProps {
 }
 
 export function AuthForm({ mode, loading, serverError, onSubmit }: AuthFormProps) {
+  const { t } = useTranslation()
   const isLogin = mode === 'login'
   const schema = isLogin ? loginSchema : registerSchema
 
@@ -40,24 +42,21 @@ export function AuthForm({ mode, loading, serverError, onSubmit }: AuthFormProps
       <div className="auth-hero">
         <div className="auth-hero-shape auth-hero-shape--1" />
         <div className="auth-hero-shape auth-hero-shape--2" />
-        <div className="auth-hero-shape auth-hero-shape--3" />
         <div className="auth-hero-content">
-          <h1 className="auth-hero-logo">TaskFlow</h1>
-          <p className="auth-hero-tagline">
-            Organize your work, boost your productivity, and never miss a deadline.
-          </p>
+          <h1 className="auth-hero-logo">{t('auth.heroTitle')}</h1>
+          <p className="auth-hero-tagline">{t('auth.heroSubtitle')}</p>
           <div className="auth-hero-stats">
             <div className="auth-hero-stat">
               <span className="auth-hero-stat-value">10K+</span>
-              <span className="auth-hero-stat-label">Tasks Completed</span>
+              <span className="auth-hero-stat-label">{t('auth.tasksManaged')}</span>
             </div>
             <div className="auth-hero-stat">
               <span className="auth-hero-stat-value">99%</span>
-              <span className="auth-hero-stat-label">Uptime</span>
+              <span className="auth-hero-stat-label">{t('auth.productivity')}</span>
             </div>
             <div className="auth-hero-stat">
               <span className="auth-hero-stat-value">4.9</span>
-              <span className="auth-hero-stat-label">User Rating</span>
+              <span className="auth-hero-stat-label">{t('auth.activeUsers')}</span>
             </div>
           </div>
         </div>
@@ -65,30 +64,28 @@ export function AuthForm({ mode, loading, serverError, onSubmit }: AuthFormProps
 
       <div className="auth-form-wrapper">
         <div className="auth-card">
-          <h1>{isLogin ? 'Welcome back' : 'Get started'}</h1>
+          <h1>{isLogin ? t('auth.welcomeBack') : t('auth.getStarted')}</h1>
           <p className="subtle">
-            {isLogin
-              ? 'Sign in to access your tasks and stay on track.'
-              : 'Create an account and start managing your tasks.'}
+            {isLogin ? t('auth.loginSubtitle') : t('auth.registerSubtitle')}
           </p>
 
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             {!isLogin && (
               <label className="field">
-                <span>Full name</span>
+                <span>{t('auth.name')}</span>
                 <input placeholder="John Doe" {...register('name')} />
                 {errors.name && <small className="error">{errors.name.message}</small>}
               </label>
             )}
 
             <label className="field">
-              <span>Email address</span>
+              <span>{t('auth.email')}</span>
               <input type="email" placeholder="john@example.com" {...register('email')} />
               {errors.email && <small className="error">{errors.email.message}</small>}
             </label>
 
             <label className="field">
-              <span>Password</span>
+              <span>{t('auth.password')}</span>
               <input type="password" placeholder="••••••••" {...register('password')} />
               {errors.password && <small className="error">{errors.password.message}</small>}
             </label>
@@ -97,13 +94,13 @@ export function AuthForm({ mode, loading, serverError, onSubmit }: AuthFormProps
 
             <button className="button" type="submit" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
               {loading && <Spinner />}
-              {loading ? 'Please wait...' : isLogin ? 'Sign in' : 'Create account'}
+              {loading ? t('auth.loggingIn') : isLogin ? t('auth.signIn') : t('auth.signUp')}
             </button>
           </form>
 
           <p className="switch-auth">
-            {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-            <Link to={isLogin ? '/register' : '/login'}>{isLogin ? 'Create one' : 'Sign in'}</Link>
+            {isLogin ? t('auth.noAccount') : t('auth.hasAccount')}{' '}
+            <Link to={isLogin ? '/register' : '/login'}>{isLogin ? t('auth.createOne') : t('auth.signIn')}</Link>
           </p>
         </div>
       </div>

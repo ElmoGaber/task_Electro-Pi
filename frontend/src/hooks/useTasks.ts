@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import api from '@/api/client'
-import type { Task, TaskFormValues, TaskListResponse } from '@/types'
+import type { Task, TaskFormValues, TaskListResponse, TaskStatus } from '@/types'
 
 export function useTaskList(params: Record<string, string>) {
   const queryString = new URLSearchParams(params).toString()
@@ -31,6 +31,17 @@ export function useUpdateTask(taskId: string | null) {
   return useMutation<Task, Error, TaskFormValues>({
     mutationFn: async (payload) => {
       const { data } = await api.put<{ task: Task }>(`/tasks/${taskId}`, payload)
+      return data.task
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  })
+}
+
+export function useUpdateTaskStatus() {
+  const queryClient = useQueryClient()
+  return useMutation<Task, Error, { taskId: string; status: TaskStatus }>({
+    mutationFn: async ({ taskId, status }) => {
+      const { data } = await api.put<{ task: Task }>(`/tasks/${taskId}`, { status })
       return data.task
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),

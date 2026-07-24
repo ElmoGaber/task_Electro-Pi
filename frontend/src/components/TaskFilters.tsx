@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useDebounce } from '@/hooks/useDebounce'
 import type { TaskFiltersState } from '@/types'
 
@@ -16,6 +17,7 @@ interface TaskFiltersProps {
 }
 
 export function TaskFilters({ onChange }: TaskFiltersProps) {
+  const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
   const [rawSearch, setRawSearch] = useState(() => parseParams(searchParams).search)
   const [status, setStatus] = useState(() => parseParams(searchParams).status)
@@ -43,40 +45,33 @@ export function TaskFilters({ onChange }: TaskFiltersProps) {
 
   return (
     <div className="card filters">
-      <h2 style={{ margin: '0 0 0.85rem', fontSize: '1rem', fontWeight: 600 }}>Search & Filter</h2>
+      <h2 style={{ margin: '0 0 0.85rem', fontSize: '1rem', fontWeight: 600 }}>{t('dashboard.searchFilter')}</h2>
       <div className="filters-grid">
         <label className="field">
-          <span>Title</span>
-          <input
-            placeholder="Search title..."
-            name="search"
-            value={rawSearch}
-            onChange={(e) => setRawSearch(e.target.value)}
-          />
+          <span>{t('dashboard.title', 'Title')}</span>
+          <input placeholder={t('dashboard.searchPlaceholder')} name="search" value={rawSearch} onChange={(e) => setRawSearch(e.target.value)} />
         </label>
-
         <label className="field">
-          <span>Status</span>
+          <span>{t('dashboard.status')}</span>
           <select name="status" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="">All</option>
-            <option value="To Do">To Do</option>
-            <option value="In Progress">In Progress</option>
-            <option value="Done">Done</option>
+            <option value="">{t('dashboard.all')}</option>
+            <option value="To Do">{t('status.To Do')}</option>
+            <option value="In Progress">{t('status.In Progress')}</option>
+            <option value="Done">{t('status.Done')}</option>
           </select>
         </label>
-
         <label className="field">
-          <span>Priority</span>
+          <span>{t('dashboard.priority')}</span>
           <select name="priority" value={priority} onChange={(e) => setPriority(e.target.value)}>
-            <option value="">All</option>
-            <option value="Low">Low</option>
-            <option value="Medium">Medium</option>
-            <option value="High">High</option>
+            <option value="">{t('dashboard.all')}</option>
+            <option value="Low">{t('priority.Low')}</option>
+            <option value="Medium">{t('priority.Medium')}</option>
+            <option value="High">{t('priority.High')}</option>
           </select>
         </label>
       </div>
       <button className="button button-secondary" type="button" onClick={handleClear}>
-        Clear Filters
+        {t('dashboard.clearFilters')}
       </button>
     </div>
   )

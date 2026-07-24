@@ -2,17 +2,20 @@ import { useCallback, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core'
+import type { Task } from '@/types'
 import { TaskForm } from '@/components/TaskForm'
 import { TaskFilters } from '@/components/TaskFilters'
-import { TaskList } from '@/components/TaskList'
+import { KanbanBoard } from '@/components/KanbanBoard'
+import { KanbanCard } from '@/components/KanbanCard'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { ExportMenu } from '@/components/ExportMenu'
 import { LanguageToggle } from '@/components/LanguageToggle'
 import { SettingsBar } from '@/components/SettingsBar'
 import { useAuth } from '@/context/useAuth'
 import { useTheme } from '@/context/useTheme'
-import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask } from '@/hooks/useTasks'
-import type { Task, TaskFiltersState, TaskFormValues } from '@/types'
+import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask, useUpdateTaskStatus } from '@/hooks/useTasks'
+import type { TaskFiltersState, TaskFormValues } from '@/types'
 
 export function DashboardPage() {
   const { t } = useTranslation()
@@ -22,6 +25,7 @@ export function DashboardPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [filters, setFilters] = useState<TaskFiltersState>({ search: '', status: '', priority: '' })
+  const [activeDrag, setActiveDrag] = useState<Task | null>(null)
 
   const queryParams = useMemo(() => {
     const params: Record<string, string> = {}
@@ -37,25 +41,40 @@ export function DashboardPage() {
   const { mutateAsync: createTask, isPending: isCreating } = useCreateTask()
   const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTask(editingTask?._id ?? null)
   const { mutateAsync: deleteTask, isPending: isDeleting } = useDeleteTask()
+  const { mutateAsync: updateStatus } = useUpdateTaskStatus()
 
-  const stats = useMemo(() => {
-    if (!tasks) return null
-    return {
-      total: tasks.length,
-      todo: tasks.filter((t) => t.status === 'To Do').length,
-      inProgress: tasks.filter((t) => t.status === 'In Progress').length,
-      done: tasks.filter((t) => t.status === 'Done').length,
-    }
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (!tasks) return
+    const task = tasks.find((t) => t._id === event.active.id)
+    if (task) setActiveDrag(task)
   }, [tasks])
 
-  const handleCreate = useCallback(async (values: TaskFormValues) => {
-    try { await createTask(values); toast.success(t('dashboard.taskCreated')) }
+  const handleDragEnd = useCallback(async (event: DragEndEvent) => {
+    setActiveDrag(null)
+    const { active, over } = event
+    if (!over || !active) return
+    const taskId = active.id as string
+    const newStatus = over.id as Task['status']
+    const validStatuses: Task['status'][] = ['To Do', 'In Progress', 'Done']
+    if (!validStatuses.includes(newStatus)) return
+    const oldTask = tasks?.find((t) => t._id === taskId)
+    if (!oldTask || oldTask.status === newStatus) return
+    try {
+      await updateStatus({ taskId, status: newStatus })
+      toast.success(t('dashboard.taskUpdated'))
+    } catch { toast.error(t('app.error')) }
+  }, [updateStatus, tasks, t])
+
+  const handleCreate = useCallback(async (values: TaskFormValues & { media?: string[] }) => {
+    try { await createTask(values as TaskFormValues); toast.success(t('dashboard.taskCreated')) }
     catch { toast.error(t('app.error')) }
   }, [createTask, t])
 
-  const handleUpdate = useCallback(async (values: TaskFormValues) => {
+  const handleUpdate = useCallback(async (values: TaskFormValues & { media?: string[] }) => {
     if (!editingTask) return
-    try { await updateTask(values); setEditingTask(null); toast.success(t('dashboard.taskUpdated')) }
+    try { await updateTask(values as TaskFormValues); setEditingTask(null); toast.success(t('dashboard.taskUpdated')) }
     catch { toast.error(t('app.error')) }
   }, [updateTask, editingTask, t])
 
@@ -89,23 +108,12 @@ export function DashboardPage() {
           <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/analytics')}>
             {t('dashboard.analytics')}
           </button>
+          <ExportMenu tasks={tasks} />
           <button className="button button-secondary button-sm" type="button" onClick={logout}>
             {t('dashboard.logout')}
           </button>
         </div>
       </header>
-
-      {stats && !isLoading && tasks && tasks.length > 0 && (
-        <div className="card animate-in" style={{ padding: '0.9rem 1.1rem' }}>
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <span className="live-badge"><span className="live-dot" /> Live</span>
-            {stats.total > 0 && <><span className="badge status-to-do">{stats.todo} {t('dashboard.toDo')}</span>
-            <span className="badge status-in-progress">{stats.inProgress} {t('dashboard.inProgress')}</span>
-            <span className="badge status-done">{stats.done} {t('dashboard.done')}</span></>}
-            <ExportMenu tasks={tasks} />
-          </div>
-        </div>
-      )}
 
       <TaskForm
         key={editingTask?._id ?? 'new'}
@@ -113,6 +121,7 @@ export function DashboardPage() {
           title: editingTask.title, description: editingTask.description,
           status: editingTask.status, priority: editingTask.priority,
           dueDate: new Date(editingTask.dueDate).toISOString().split('T')[0],
+          media: editingTask.media,
         } : undefined}
         onSubmit={editingTask ? handleUpdate : handleCreate}
         onCancel={handleCancelEdit}
@@ -122,11 +131,39 @@ export function DashboardPage() {
 
       <TaskFilters onChange={setFilters} />
 
-      <TaskList
-        tasks={tasks} loading={isLoading} error={error} hasFilters={hasFilters}
-        onEdit={handleEdit} onDelete={setDeleteTarget}
-        onClearFilters={() => setFilters({ search: '', status: '', priority: '' })}
-      />
+      {isLoading ? (
+        <div className="kanban-board">
+          {[1, 2, 3].map((c) => (
+            <div key={c} className="kanban-col">
+              <div className="kanban-col-header"><span className="skeleton-line" style={{ width: '60%' }} /></div>
+              <div className="kanban-col-body">
+                {[1, 2].map((r) => <div key={r} className="skeleton-card" />)}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : error ? (
+        <div className="card feedback error-box" role="alert">{error.message}</div>
+      ) : tasks && tasks.length > 0 ? (
+        <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <KanbanBoard tasks={tasks} onEdit={handleEdit} onDelete={setDeleteTarget} />
+          <DragOverlay>
+            {activeDrag ? <KanbanCard task={activeDrag} onEdit={() => {}} onDelete={() => {}} /> : null}
+          </DragOverlay>
+        </DndContext>
+      ) : (
+        <div className="card empty-state animate-in">
+          <svg className="empty-icon" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="12" y="20" width="56" height="48" rx="6" fill="var(--border)" />
+            <rect x="20" y="30" width="30" height="4" rx="2" fill="var(--text-tertiary)" />
+            <rect x="20" y="40" width="40" height="4" rx="2" fill="var(--text-tertiary)" />
+            <circle cx="60" cy="56" r="16" fill="var(--primary-bg)" />
+            <path d="M60 48v16M52 56h16" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
+          <h3>{hasFilters ? t('dashboard.noMatch') : t('dashboard.noTasks')}</h3>
+          <p>{hasFilters ? t('dashboard.noMatchDesc') : t('dashboard.noTasksDesc')}</p>
+        </div>
+      )}
 
       <ConfirmDialog
         open={Boolean(deleteTarget)}

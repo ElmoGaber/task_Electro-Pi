@@ -26,7 +26,10 @@
     "loginSubtitle": "Sign in to access your tasks and stay on track.",
     "registerSubtitle": "Create an account and start managing your tasks.",
     "heroTitle": "TaskFlow",
-    "heroSubtitle": "Organize your work, boost your productivity, and never miss a deadline."
+    "heroSubtitle": "Organize your work, boost your productivity, and never miss a deadline.",
+    "tasksManaged": "Tasks Managed",
+    "activeUsers": "Active Users",
+    "productivity": "Productivity"
   },
   "dashboard": {
     "title": "TaskFlow",
@@ -98,5 +101,18 @@
     "Low": "Low",
     "Medium": "Medium",
     "High": "High"
+  },
+  "task": {
+    "media": "Media",
+    "addImage": "Image",
+    "recordVoice": "Record Voice"
+  },
+  "voice": {
+    "record": "Record voice",
+    "stop": "Stop"
+  },
+  "kanban": {
+    "dropHere": "Drop tasks here",
+    "dragHint": "Drag tasks between columns to update status"
   }
 }
