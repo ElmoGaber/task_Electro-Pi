@@ -43,8 +43,8 @@ export function TaskFilters({ onChange }: TaskFiltersProps) {
 
   return (
     <div className="card filters">
-      <h2>Search & Filter</h2>
-      <div className="grid-3">
+      <h2 style={{ margin: '0 0 0.85rem', fontSize: '1rem', fontWeight: 600 }}>Search & Filter</h2>
+      <div className="filters-grid">
         <label className="field">
           <span>Title</span>
           <input

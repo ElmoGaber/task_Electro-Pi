@@ -35,6 +35,16 @@ export function DashboardPage() {
   const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTask(editingTask?._id ?? null)
   const { mutateAsync: deleteTask, isPending: isDeleting } = useDeleteTask()
 
+  const stats = useMemo(() => {
+    if (!tasks) return null
+    return {
+      total: tasks.length,
+      todo: tasks.filter((t) => t.status === 'To Do').length,
+      inProgress: tasks.filter((t) => t.status === 'In Progress').length,
+      done: tasks.filter((t) => t.status === 'Done').length,
+    }
+  }, [tasks])
+
   const handleCreate = useCallback(
     async (values: TaskFormValues) => {
       try {
@@ -85,13 +95,13 @@ export function DashboardPage() {
 
   return (
     <main className="container">
-      <header className="page-header card">
-        <div>
+      <header className="page-header">
+        <div className="page-header-left">
           <h1>TaskFlow</h1>
-          <p className="subtle">Hello, {user?.name || 'User'}</p>
+          <span className="subtle">Welcome back, {user?.name || 'User'}</span>
         </div>
         <div className="actions">
-          <button className="button button-icon-only" type="button" onClick={toggleTheme} aria-label="Toggle theme">
+          <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label="Toggle theme">
             {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
           </button>
           <button className="button button-secondary" type="button" onClick={logout}>
@@ -99,6 +109,29 @@ export function DashboardPage() {
           </button>
         </div>
       </header>
+
+      {stats && !isLoading && tasks && tasks.length > 0 && (
+        <div className="card" style={{ padding: '1rem 1.25rem' }}>
+          <div className="task-stats">
+            <span className="task-stat">
+              <span className="task-stat-dot" style={{ background: 'var(--text-secondary)' }} />
+              {stats.total} total
+            </span>
+            <span className="task-stat">
+              <span className="task-stat-dot" style={{ background: '#94a3b8' }} />
+              {stats.todo} to do
+            </span>
+            <span className="task-stat">
+              <span className="task-stat-dot" style={{ background: '#3b82f6' }} />
+              {stats.inProgress} in progress
+            </span>
+            <span className="task-stat">
+              <span className="task-stat-dot" style={{ background: '#22c55e' }} />
+              {stats.done} done
+            </span>
+          </div>
+        </div>
+      )}
 
       <TaskForm
         key={editingTask?._id ?? 'new'}

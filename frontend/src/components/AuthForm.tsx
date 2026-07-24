@@ -36,45 +36,77 @@ export function AuthForm({ mode, loading, serverError, onSubmit }: AuthFormProps
   })
 
   return (
-    <div className="auth-layout">
-      <form className="card auth-card" onSubmit={handleSubmit(onSubmit)} noValidate>
-        <h1>{isLogin ? 'Login' : 'Register'}</h1>
-        <p className="subtle">
-          {isLogin ? 'Welcome back, please sign in.' : 'Create your account to manage tasks.'}
-        </p>
+    <div className="auth-page">
+      <div className="auth-hero">
+        <div className="auth-hero-shape auth-hero-shape--1" />
+        <div className="auth-hero-shape auth-hero-shape--2" />
+        <div className="auth-hero-shape auth-hero-shape--3" />
+        <div className="auth-hero-content">
+          <h1 className="auth-hero-logo">TaskFlow</h1>
+          <p className="auth-hero-tagline">
+            Organize your work, boost your productivity, and never miss a deadline.
+          </p>
+          <div className="auth-hero-stats">
+            <div className="auth-hero-stat">
+              <span className="auth-hero-stat-value">10K+</span>
+              <span className="auth-hero-stat-label">Tasks Completed</span>
+            </div>
+            <div className="auth-hero-stat">
+              <span className="auth-hero-stat-value">99%</span>
+              <span className="auth-hero-stat-label">Uptime</span>
+            </div>
+            <div className="auth-hero-stat">
+              <span className="auth-hero-stat-value">4.9</span>
+              <span className="auth-hero-stat-label">User Rating</span>
+            </div>
+          </div>
+        </div>
+      </div>
 
-        {!isLogin && (
-          <label className="field">
-            <span>Name</span>
-            <input {...register('name')} />
-            {errors.name && <small className="error">{errors.name.message}</small>}
-          </label>
-        )}
+      <div className="auth-form-wrapper">
+        <div className="auth-card">
+          <h1>{isLogin ? 'Welcome back' : 'Get started'}</h1>
+          <p className="subtle">
+            {isLogin
+              ? 'Sign in to access your tasks and stay on track.'
+              : 'Create an account and start managing your tasks.'}
+          </p>
 
-        <label className="field">
-          <span>Email</span>
-          <input type="email" {...register('email')} />
-          {errors.email && <small className="error">{errors.email.message}</small>}
-        </label>
+          <form onSubmit={handleSubmit(onSubmit)} noValidate>
+            {!isLogin && (
+              <label className="field">
+                <span>Full name</span>
+                <input placeholder="John Doe" {...register('name')} />
+                {errors.name && <small className="error">{errors.name.message}</small>}
+              </label>
+            )}
 
-        <label className="field">
-          <span>Password</span>
-          <input type="password" {...register('password')} />
-          {errors.password && <small className="error">{errors.password.message}</small>}
-        </label>
+            <label className="field">
+              <span>Email address</span>
+              <input type="email" placeholder="john@example.com" {...register('email')} />
+              {errors.email && <small className="error">{errors.email.message}</small>}
+            </label>
 
-        {serverError && <div className="feedback error-box">{serverError}</div>}
+            <label className="field">
+              <span>Password</span>
+              <input type="password" placeholder="••••••••" {...register('password')} />
+              {errors.password && <small className="error">{errors.password.message}</small>}
+            </label>
 
-        <button className="button" type="submit" disabled={loading}>
-          {loading && <Spinner />}
-          {loading ? 'Please wait...' : isLogin ? 'Sign in' : 'Create Account'}
-        </button>
+            {serverError && <div className="feedback error-box">{serverError}</div>}
 
-        <p className="switch-auth">
-          {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
-          <Link to={isLogin ? '/register' : '/login'}>{isLogin ? 'Register' : 'Login'}</Link>
-        </p>
-      </form>
+            <button className="button" type="submit" disabled={loading} style={{ width: '100%', marginTop: '0.5rem' }}>
+              {loading && <Spinner />}
+              {loading ? 'Please wait...' : isLogin ? 'Sign in' : 'Create account'}
+            </button>
+          </form>
+
+          <p className="switch-auth">
+            {isLogin ? "Don't have an account?" : 'Already have an account?'}{' '}
+            <Link to={isLogin ? '/register' : '/login'}>{isLogin ? 'Create one' : 'Sign in'}</Link>
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
