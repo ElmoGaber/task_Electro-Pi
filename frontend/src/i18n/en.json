@@ -111,6 +111,11 @@
     "record": "Record voice",
     "stop": "Stop"
   },
+  "assistant": {
+    "title": "AI Assistant",
+    "noSuggestions": "No suggestions yet. Create some tasks!",
+    "autoRefresh": "Auto-refreshes every 2 min"
+  },
   "kanban": {
     "dropHere": "Drop tasks here",
     "dragHint": "Drag tasks between columns to update status"

@@ -44,7 +44,15 @@ export function useUpdateTaskStatus() {
       const { data } = await api.put<{ task: Task }>(`/tasks/${taskId}`, { status })
       return data.task
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+    onMutate: async ({ taskId, status }) => {
+      await queryClient.cancelQueries({ queryKey: ['tasks'] })
+      const queries = queryClient.getQueriesData<Task[]>({ queryKey: ['tasks'] })
+      queries.forEach(([key, tasks]) => {
+        if (!tasks) return
+        queryClient.setQueryData(key, tasks.map((t) => t._id === taskId ? { ...t, status } : t))
+      })
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
   })
 }
 

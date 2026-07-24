@@ -55,12 +55,22 @@ export function DashboardPage() {
     setActiveDrag(null)
     const { active, over } = event
     if (!over || !active) return
+
     const taskId = active.id as string
-    const newStatus = over.id as Task['status']
     const validStatuses: Task['status'][] = ['To Do', 'In Progress', 'Done']
-    if (!validStatuses.includes(newStatus)) return
+
+    let newStatus: Task['status'] | null = null
+    if (validStatuses.includes(over.id as Task['status'])) {
+      newStatus = over.id as Task['status']
+    } else {
+      const overTask = tasks?.find((t) => t._id === over.id)
+      if (overTask) newStatus = overTask.status
+    }
+
+    if (!newStatus) return
     const oldTask = tasks?.find((t) => t._id === taskId)
     if (!oldTask || oldTask.status === newStatus) return
+
     try {
       await updateStatus({ taskId, status: newStatus })
       toast.success(t('dashboard.taskUpdated'))

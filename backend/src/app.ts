@@ -12,6 +12,7 @@ import { apiRateLimiter } from './middleware/rateLimiters'
 import authRoutes = require('./routes/authRoutes')
 import taskRoutes = require('./routes/taskRoutes')
 import uploadRoutes = require('./routes/uploadRoutes')
+import assistantRoutes = require('./routes/assistantRoutes')
 
 const app = express()
 
@@ -34,6 +35,7 @@ app.get('/api/health', (_req, res) => {
 app.use('/api/auth', authRoutes)
 app.use('/api/tasks', csrfProtection, taskRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/assistant', assistantRoutes)
 
 app.use(notFoundHandler)
 app.use(errorHandler)
