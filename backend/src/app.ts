@@ -1,0 +1,46 @@
+import compression from 'compression'
+import cors from 'cors'
+import cookieParser from 'cookie-parser'
+import express from 'express'
+import helmet from 'helmet'
+import morgan from 'morgan'
+import { AppError } from './errors/AppError'
+import { errorHandler } from './middleware/errorHandler'
+import { notFoundHandler } from './middleware/notFound'
+import authRoutes from './routes/authRoutes'
+import taskRoutes from './routes/taskRoutes'
+
+const app = express()
+const allowedOrigins = (process.env.CLIENT_URL || 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean)
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        return callback(null, true)
+      }
+      return callback(new AppError('CORS origin blocked.', 403, 'CORS_BLOCKED'))
+    },
+    credentials: true,
+  }),
+)
+app.use(helmet())
+app.use(compression())
+app.use(cookieParser())
+app.use(morgan('dev'))
+app.use(express.json())
+
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({ message: 'API is healthy.' })
+})
+
+app.use('/api/auth', authRoutes)
+app.use('/api/tasks', taskRoutes)
+
+app.use(notFoundHandler)
+app.use(errorHandler)
+
+export default app
