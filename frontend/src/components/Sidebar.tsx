@@ -12,24 +12,34 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { icon: '⊞', label: 'Overview', path: '/' },
-  { icon: '▤', label: 'Projects', path: '/tasks' },
+  { icon: '▤', label: 'Projects', path: '/projects' },
   { icon: '⏱', label: 'Activity', path: '/activity', badge: 3 },
   { icon: '✉', label: 'Messages', path: '/messages', badge: 5 },
   { icon: '👥', label: 'Members', path: '/members' },
   { icon: '📅', label: 'Calendar', path: '/calendar' },
+  { icon: '📊', label: 'Analytics', path: '/analytics' },
   { icon: '⚙', label: 'Settings', path: '/settings' },
-  { icon: 'ⓘ', label: 'Updates', path: '/updates', badge: 1 },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean
+  onClose?: () => void
+}
+
+export function Sidebar({ collapsed, onClose }: SidebarProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
   const { user, logout } = useAuth()
   const { theme, toggle: toggleTheme } = useTheme()
 
+  const handleNav = (path: string) => {
+    navigate(path)
+    onClose?.()
+  }
+
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${collapsed ? ' sidebar--collapsed' : ''}`}>
       <div className="sidebar-logo">
         <div className="sidebar-logo-icon">
           <div className="layer layer-1" />
@@ -45,7 +55,7 @@ export function Sidebar() {
             <div
               key={item.path}
               className={`sidebar-item${isActive ? ' active' : ''}`}
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNav(item.path)}
             >
               <span className="sidebar-icon">{item.icon}</span>
               <span>{t(`nav.${item.label.toLowerCase()}`, item.label)}</span>
