@@ -1,10 +1,15 @@
 import mongoose from 'mongoose'
 
 export const connectDatabase = async (): Promise<void> => {
-  const mongoUri = process.env.MONGO_URI
+  let mongoUri = process.env.MONGO_URI
+
   if (!mongoUri) {
-    throw new Error('MONGO_URI is required')
+    const { MongoMemoryServer } = await import('mongodb-memory-server')
+    const mongod = await MongoMemoryServer.create()
+    mongoUri = mongod.getUri()
+    console.log('Using in-memory MongoDB (no MONGO_URI set in .env)')
   }
 
   await mongoose.connect(mongoUri)
+  console.log(`MongoDB connected: ${mongoose.connection.host}`)
 }
