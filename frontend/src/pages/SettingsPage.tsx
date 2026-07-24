@@ -1,23 +1,59 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 import { AppLayout } from '@/components/AppLayout'
 import { fakeUsers, fakeNotifications } from '@/lib/fakeData'
+import { useTheme } from '@/context/useTheme'
 
 const tabs = ['General', 'Notifications', 'Security', 'Appearance', 'Billing', 'API & Integrations']
 
 export function SettingsPage() {
+  const { t, i18n } = useTranslation()
+  const { theme, toggle: toggleTheme } = useTheme()
   const [activeTab, setActiveTab] = useState('General')
+  const [fontSize, setFontSize] = useState(() => document.documentElement.getAttribute('data-font-size') || 'medium')
+  const [compactMode, setCompactMode] = useState(() => document.documentElement.getAttribute('data-compact') === 'true' ? 'On' : 'Off')
+  const [toast, setToast] = useState('')
   const user = fakeUsers[0]
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+
+  const handleTheme = (mode: string) => {
+    if ((mode === 'Dark' && theme !== 'dark') || (mode === 'Light' && theme !== 'light')) toggleTheme()
+    if (mode === 'System') { localStorage.removeItem('taskflow-theme'); showToast('🖥️ Theme set to System') }
+    showToast(`🎨 Theme changed to ${mode}`)
+  }
+
+  const handleLanguage = (lang: string) => {
+    i18n.changeLanguage(lang === 'Arabic' ? 'ar' : 'en')
+    document.documentElement.dir = lang === 'Arabic' ? 'rtl' : 'ltr'
+    showToast(`🌐 Language changed to ${lang}`)
+  }
+
+  const handleFontSize = (size: string) => {
+    setFontSize(size.toLowerCase())
+    document.documentElement.setAttribute('data-font-size', size.toLowerCase())
+    showToast(`📝 Font size changed to ${size}`)
+  }
+
+  const handleCompact = (mode: string) => {
+    setCompactMode(mode)
+    document.documentElement.setAttribute('data-compact', mode === 'On' ? 'true' : 'false')
+    showToast(`📏 Compact mode ${mode}`)
+  }
+
+  const currentTheme = theme === 'dark' ? 'Dark' : 'Light'
+  const currentLang = i18n.language === 'ar' ? 'Arabic' : 'English'
 
   return (
     <AppLayout>
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      {toast && <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', background: 'var(--primary)', color: '#fff', padding: '0.75rem 1.2rem', borderRadius: 'var(--radius)', zIndex: 500, fontSize: '0.85rem', boxShadow: 'var(--shadow-lg)' }}>{toast}</div>}
       <div className="page-header-wrap">
         <div><h1>Settings</h1></div>
       </div>
 
       <div style={{ display: 'flex', gap: '1rem' }}>
-        {/* Side tabs */}
         <div style={{ width: 200, flexShrink: 0, display: 'flex', flexDirection: 'column', gap: '2px' }}>
           {tabs.map((t) => (
             <button key={t} onClick={() => setActiveTab(t)} style={{
@@ -29,14 +65,13 @@ export function SettingsPage() {
           ))}
         </div>
 
-        {/* Content */}
         <div style={{ flex: 1 }}>
           {activeTab === 'General' && (
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <h3>Profile</h3>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <div style={{ width: 56, height: 56, borderRadius: '50%', background: user.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.2rem', fontWeight: 700 }}>{user.avatar}</div>
-                <div><button className="button button-sm">Change Photo</button></div>
+                <div><button className="button button-sm" onClick={() => showToast('📸 Photo upload coming soon!')}>Change Photo</button></div>
               </div>
               {[
                 { label: 'Full Name', value: user.name },
@@ -50,7 +85,7 @@ export function SettingsPage() {
                   <input style={{ padding: '0.5rem 0.7rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.85rem' }} defaultValue={f.value} />
                 </div>
               ))}
-              <div><button className="button">Save Changes</button></div>
+              <div><button className="button" onClick={() => showToast('✅ Changes saved!')}>Save Changes</button></div>
             </div>
           )}
 
@@ -100,13 +135,13 @@ export function SettingsPage() {
                 </div>
               ))}
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <button className="button">Update Password</button>
+                <button className="button" onClick={() => showToast('🔒 Password updated!')}>Update Password</button>
                 <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Last changed 30 days ago</div>
               </div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
               <h3>Two-Factor Authentication</h3>
               <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Add an extra layer of security to your account.</div>
-              <button className="button button-secondary">Enable 2FA</button>
+              <button className="button button-secondary" onClick={() => showToast('🔐 2FA setup coming soon!')}>Enable 2FA</button>
               <h3>Sessions</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem', background: 'var(--bg-elevated)', borderRadius: 'var(--radius)' }}>
@@ -122,22 +157,38 @@ export function SettingsPage() {
           {activeTab === 'Appearance' && (
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <h3>Appearance</h3>
-              {[
-                { label: 'Theme', options: ['Dark', 'Light', 'System'], current: 'Dark' },
-                { label: 'Language', options: ['English', 'Arabic'], current: 'English' },
-                { label: 'Font Size', options: ['Small', 'Medium', 'Large'], current: 'Medium' },
-                { label: 'Compact Mode', options: ['On', 'Off'], current: 'Off' },
-              ].map((s) => (
-                <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
-                  <span style={{ fontSize: '0.85rem' }}>{s.label}</span>
-                  <div style={{ display: 'flex', gap: '0.3rem' }}>
-                    {s.options.map((o) => (
-                      <button key={o} className={`button ${o === s.current ? '' : 'button-secondary'} button-xs`} style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}>{o}</button>
-                    ))}
-                  </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem' }}>Theme</span>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {['Dark', 'Light', 'System'].map((o) => (
+                    <button key={o} className={`button ${o === currentTheme ? '' : 'button-secondary'} button-xs`} onClick={() => handleTheme(o)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}>{o}</button>
+                  ))}
                 </div>
-              ))}
-              <button className="button">Apply Appearance</button>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem' }}>Language</span>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {['English', 'Arabic'].map((o) => (
+                    <button key={o} className={`button ${o === currentLang ? '' : 'button-secondary'} button-xs`} onClick={() => handleLanguage(o)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}>{o}</button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem' }}>Font Size</span>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {['Small', 'Medium', 'Large'].map((o) => (
+                    <button key={o} className={`button ${o.toLowerCase() === fontSize ? '' : 'button-secondary'} button-xs`} onClick={() => handleFontSize(o)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}>{o}</button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem' }}>Compact Mode</span>
+                <div style={{ display: 'flex', gap: '0.3rem' }}>
+                  {['On', 'Off'].map((o) => (
+                    <button key={o} className={`button ${o === compactMode ? '' : 'button-secondary'} button-xs`} onClick={() => handleCompact(o)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.72rem' }}>{o}</button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
@@ -156,7 +207,7 @@ export function SettingsPage() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', marginBottom: '0.6rem' }}>
                       {p.features.map((f) => <div key={f} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>✓ {f}</div>)}
                     </div>
-                    <button className={`button ${p.current ? '' : 'button-secondary'} button-sm`} style={{ width: '100%' }}>{p.current ? 'Current' : 'Upgrade'}</button>
+                    <button className={`button ${p.current ? '' : 'button-secondary'} button-sm`} style={{ width: '100%' }} onClick={() => showToast(`🔄 ${p.current ? 'Already on' : 'Upgrading to'} ${p.name} plan`)}>{p.current ? 'Current' : 'Upgrade'}</button>
                   </div>
                 ))}
               </div>
@@ -168,9 +219,9 @@ export function SettingsPage() {
             <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
               <h3>API Tokens</h3>
               <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input style={{ flex: 1, padding: '0.5rem 0.7rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'monospace' }} placeholder="tf_sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" readOnly value="tf_sk_••••••••••••••••••" />
-                <button className="button button-sm">Copy</button>
-                <button className="button button-secondary button-sm">Regenerate</button>
+                <input style={{ flex: 1, padding: '0.5rem 0.7rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.85rem', fontFamily: 'monospace' }} readOnly value="tf_sk_••••••••••••••••••" />
+                <button className="button button-sm" onClick={() => { navigator.clipboard.writeText('tf_sk_example_token'); showToast('📋 Token copied!') }}>Copy</button>
+                <button className="button button-secondary button-sm" onClick={() => showToast('🔄 Token regenerated!')}>Regenerate</button>
               </div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Created 15 days ago · 2,340 requests</div>
               <hr style={{ border: 'none', borderTop: '1px solid var(--border)' }} />
@@ -184,7 +235,7 @@ export function SettingsPage() {
               ].map((i) => (
                 <div key={i.name} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.5rem 0', borderBottom: '1px solid var(--border)' }}>
                   <div><div style={{ fontSize: '0.85rem', fontWeight: 500 }}>{i.name}</div><div style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)' }}>{i.desc}</div></div>
-                  <button className={`button ${i.connected ? '' : 'button-secondary'} button-sm`}>{i.connected ? 'Connected' : 'Connect'}</button>
+                  <button className={`button ${i.connected ? '' : 'button-secondary'} button-sm`} onClick={() => showToast(`🔗 ${i.name} ${i.connected ? 'disconnected' : 'connected'}!`)} style={{ minWidth: 90 }}>{i.connected ? 'Connected' : 'Connect'}</button>
                 </div>
               ))}
             </div>

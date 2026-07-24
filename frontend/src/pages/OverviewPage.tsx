@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/AppLayout'
 import { fakeProjects, fakeUsers, fakeActivities, fakeMessages, fakeEvents } from '@/lib/fakeData'
 import { useAuth } from '@/context/useAuth'
@@ -11,9 +12,19 @@ const item = { hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }
 export function OverviewPage() {
   const { t } = useTranslation()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [greeting] = useState(() => {
     const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
   })
+  const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set())
+
+  const toggleTask = (id: string) => {
+    setCheckedTasks((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id); else next.add(id)
+      return next
+    })
+  }
 
   const upcoming = fakeProjects.filter((p) => p.status === 'In Progress').slice(0, 4)
   const recent = fakeActivities.slice(0, 10)
@@ -25,18 +36,16 @@ export function OverviewPage() {
   return (
     <AppLayout>
     <motion.div className="overview-page" variants={container} initial="hidden" animate="show">
-      {/* Welcome */}
       <motion.div className="page-header-wrap" variants={item}>
         <div>
           <h1 style={{ fontSize: '1.6rem' }}>{greeting}, {user?.name?.split(' ')[0] || 'User'} 👋</h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Here's what's happening with your projects today.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className="button">+ New Project</button>
+          <button className="button" onClick={() => navigate('/projects')}>+ New Project</button>
         </div>
       </motion.div>
 
-      {/* Stats Row */}
       <motion.div className="overview-stats" variants={item}>
         {[
           { label: 'Total Projects', value: fakeProjects.length, color: 'var(--primary)', icon: '📁' },
@@ -52,11 +61,9 @@ export function OverviewPage() {
         ))}
       </motion.div>
 
-      {/* Two column: Timeline + Recent Activity */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1rem' }}>
-        {/* Timeline */}
         <motion.div className="card" variants={item}>
-          <div className="section-header"><h2>Project Timeline</h2><span className="see-all">See All</span></div>
+          <div className="section-header"><h2>Project Timeline</h2><span className="see-all" onClick={() => navigate('/projects')} style={{ cursor: 'pointer' }}>See All</span></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {upcoming.map((p) => (
               <div key={p.id} className="timeline-bar-wrap">
@@ -70,9 +77,8 @@ export function OverviewPage() {
           </div>
         </motion.div>
 
-        {/* Recent Activity */}
         <motion.div className="card" variants={item}>
-          <div className="section-header"><h2>Recent Activity</h2><span className="see-all">See All</span></div>
+          <div className="section-header"><h2>Recent Activity</h2><span className="see-all" onClick={() => navigate('/activity')} style={{ cursor: 'pointer' }}>See All</span></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
             {recent.map((a) => (
               <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.35rem 0', borderBottom: '1px solid var(--border)' }}>
@@ -87,33 +93,33 @@ export function OverviewPage() {
         </motion.div>
       </div>
 
-      {/* Three column bottom row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-        {/* Today's Tasks */}
         <motion.div className="card" variants={item}>
           <div className="section-header"><h2>Today's Tasks</h2></div>
           <div className="today-list">
-            {tasksToday.map((p) => (
-              <div key={p.id} className="today-item">
-                <button className={`today-check${p.status === 'Completed' ? ' checked' : ''}`} type="button">
-                  {p.status === 'Completed' && <span className="today-check-inner">✓</span>}
-                </button>
-                <div className="today-item-content">
-                  <div className="today-item-title">{p.name}</div>
-                  <div className="today-item-desc">{p.description.slice(0, 40)}...</div>
-                  <div className="today-item-time">🕐 {p.deadline}</div>
+            {tasksToday.map((p) => {
+              const isChecked = checkedTasks.has(p.id)
+              return (
+                <div key={p.id} className="today-item">
+                  <button className={`today-check${isChecked ? ' checked' : ''}`} type="button" onClick={() => toggleTask(p.id)}>
+                    {isChecked && <span className="today-check-inner">✓</span>}
+                  </button>
+                  <div className="today-item-content">
+                    <div className="today-item-title" style={{ textDecoration: isChecked ? 'line-through' : 'none', opacity: isChecked ? 0.5 : 1 }}>{p.name}</div>
+                    <div className="today-item-desc">{p.description.slice(0, 40)}...</div>
+                    <div className="today-item-time">🕐 {p.deadline}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </motion.div>
 
-        {/* Team */}
         <motion.div className="card" variants={item}>
-          <div className="section-header"><h2>Team</h2><span className="see-all">See All</span></div>
+          <div className="section-header"><h2>Team</h2><span className="see-all" onClick={() => navigate('/members')} style={{ cursor: 'pointer' }}>See All</span></div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
             {teamPreview.map((u) => (
-              <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)', width: 'calc(50% - 0.25rem)' }}>
+              <div key={u.id} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.4rem 0.6rem', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)', width: 'calc(50% - 0.25rem)', cursor: 'pointer' }} onClick={() => navigate('/members')}>
                 <div style={{ width: 28, height: 28, borderRadius: '50%', background: u.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.6rem', fontWeight: 700, flexShrink: 0 }}>{u.avatar}</div>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: '0.75rem', fontWeight: 600 }}>{u.name.split(' ')[0]}</div>
@@ -124,12 +130,11 @@ export function OverviewPage() {
           </div>
         </motion.div>
 
-        {/* Upcoming Events */}
         <motion.div className="card" variants={item}>
           <div className="section-header"><h2>Upcoming</h2></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
             {eventsToday.map((e) => (
-              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)' }}>
+              <div key={e.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)', cursor: 'pointer' }} onClick={() => navigate('/calendar')}>
                 <div style={{ width: 4, height: 36, borderRadius: 2, background: e.color, flexShrink: 0 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: '0.8rem', fontWeight: 600 }}>{e.title}</div>
@@ -141,14 +146,13 @@ export function OverviewPage() {
         </motion.div>
       </div>
 
-      {/* Messages preview */}
       <motion.div className="card" variants={item}>
-        <div className="section-header"><h2>Recent Messages</h2><span className="see-all">See All</span></div>
+        <div className="section-header"><h2>Recent Messages</h2><span className="see-all" onClick={() => navigate('/messages')} style={{ cursor: 'pointer' }}>See All</span></div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
           {msgs.map((m) => {
             const u = fakeUsers.find((x) => x.id === m.id)
             return (
-              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.4rem 0', borderBottom: '1px solid var(--border)' }}>
+              <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.4rem 0', borderBottom: '1px solid var(--border)', cursor: 'pointer' }} onClick={() => navigate('/messages')}>
                 <div style={{ width: 32, height: 32, borderRadius: '50%', background: u?.color || 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>{u?.avatar || '?'}</div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{m.from}</div>

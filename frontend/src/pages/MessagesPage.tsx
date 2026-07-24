@@ -44,7 +44,12 @@ export function MessagesPage() {
           <input style={{ width: '100%', padding: '0.45rem 0.7rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.8rem' }} placeholder="Search conversations..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
         <div style={{ flex: 1, overflowY: 'auto' }}>
-          {conversations.map((m) => {
+          {conversations.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-tertiary)', fontSize: '0.85rem' }}>
+              <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>💬</div>
+              No conversations match your search.
+            </div>
+          ) : conversations.map((m) => {
             const u = fakeUsers.find((x) => x.name === m.from)
             const isActive = m.id === activeChat
             return (

@@ -10,6 +10,10 @@ export function MembersPage() {
   const [roleFilter, setRoleFilter] = useState('All')
   const [search, setSearch] = useState('')
   const [view, setView] = useState<'grid' | 'list'>('grid')
+  const [menuId, setMenuId] = useState<string | null>(null)
+  const [toast, setToast] = useState('')
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000) }
 
   const filtered = useMemo(() => {
     let items = [...fakeUsers]
@@ -27,11 +31,12 @@ export function MembersPage() {
   return (
     <AppLayout>
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+      {toast && <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', background: 'var(--primary)', color: '#fff', padding: '0.75rem 1.2rem', borderRadius: 'var(--radius)', zIndex: 500, fontSize: '0.85rem', boxShadow: 'var(--shadow-lg)' }}>{toast}</div>}
       <div className="page-header-wrap">
         <div><h1>Team Members</h1><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{fakeUsers.length} members across {Object.keys(deptCounts).length} departments</p></div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input style={{ padding: '0.5rem 0.8rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.82rem', width: 200 }} placeholder="Search members..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <button className="button">+ Invite</button>
+          <button className="button" onClick={() => showToast('✉️ Invite link copied to clipboard!')}>+ Invite</button>
         </div>
       </div>
 
@@ -45,7 +50,6 @@ export function MembersPage() {
         </div>
       </div>
 
-      {/* Department summary */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
         {Object.entries(deptCounts).map(([dept, count]) => (
           <div key={dept} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.7rem', borderRadius: 'var(--radius)', background: 'var(--bg-elevated)', fontSize: '0.78rem' }}>
@@ -55,20 +59,35 @@ export function MembersPage() {
         ))}
       </div>
 
-      {view === 'grid' ? (
+      {filtered.length === 0 ? (
+        <div className="card empty-state" style={{ textAlign: 'center', padding: '2.5rem' }}>
+          <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>👥</div>
+          <h3>No members found</h3>
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-tertiary)' }}>Try a different role filter or search term.</p>
+        </div>
+      ) : view === 'grid' ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.75rem' }}>
           {filtered.map((u, i) => (
             <motion.div key={u.id} className="card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.02 }}
-              whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }} style={{ cursor: 'pointer', textAlign: 'center' }}>
+              whileHover={{ y: -3, boxShadow: 'var(--shadow-md)' }} style={{ cursor: 'pointer', textAlign: 'center', position: 'relative' }}>
               <div style={{ width: 52, height: 52, borderRadius: '50%', background: u.color, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1rem', fontWeight: 700, margin: '0 auto 0.5rem' }}>{u.avatar}</div>
               <h3 style={{ fontSize: '0.9rem', margin: 0 }}>{u.name}</h3>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.2rem 0' }}>{u.role} · {u.department}</div>
               <div style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{u.email}</div>
               <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', marginTop: '0.3rem' }}>📅 Joined {u.joined}</div>
               <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem', marginTop: '0.5rem' }}>
-                <button className="button-icon button-icon-sm" title="Message">💬</button>
-                <button className="button-icon button-icon-sm" title="Profile">👤</button>
-                <button className="button-icon button-icon-sm" title="More">⋯</button>
+                <button className="button-icon button-icon-sm" title="Message" onClick={() => showToast(`💬 Messaging ${u.name}...`)}>💬</button>
+                <button className="button-icon button-icon-sm" title="Profile" onClick={() => showToast(`👤 ${u.name}: ${u.role} · ${u.department} · ${u.email}`)}>👤</button>
+                <div style={{ position: 'relative' }}>
+                  <button className="button-icon button-icon-sm" title="More" onClick={() => setMenuId(menuId === u.id ? null : u.id)}>⋯</button>
+                  {menuId === u.id && (
+                    <div style={{ position: 'absolute', top: '100%', right: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)', zIndex: 50, minWidth: 150, overflow: 'hidden' }}>
+                      <button style={{ display: 'block', width: '100%', padding: '0.45rem 0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text)', textAlign: 'left', fontFamily: 'inherit' }} onClick={() => { showToast(`👤 ${u.name} profile`); setMenuId(null) }}>👤 View Profile</button>
+                      <button style={{ display: 'block', width: '100%', padding: '0.45rem 0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text)', textAlign: 'left', fontFamily: 'inherit' }} onClick={() => { showToast(`💬 Messaging ${u.name}...`); setMenuId(null) }}>💬 Send Message</button>
+                      <button style={{ display: 'block', width: '100%', padding: '0.45rem 0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--red)', textAlign: 'left', fontFamily: 'inherit' }} onClick={() => { showToast(`🚫 ${u.name} removed from workspace`); setMenuId(null) }}>🚫 Remove</button>
+                    </div>
+                  )}
+                </div>
               </div>
             </motion.div>
           ))}
@@ -91,7 +110,16 @@ export function MembersPage() {
                   <td style={{ padding: '0.5rem 0.8rem', color: 'var(--text-tertiary)' }}>{u.email}</td>
                   <td style={{ padding: '0.5rem 0.8rem', color: 'var(--text-tertiary)' }}>{u.phone}</td>
                   <td style={{ padding: '0.5rem 0.8rem', color: 'var(--text-tertiary)' }}>{u.joined}</td>
-                  <td style={{ padding: '0.5rem 0.8rem' }}><button className="button-icon button-icon-sm">⋯</button></td>
+                  <td style={{ padding: '0.5rem 0.8rem', position: 'relative' }}>
+                    <button className="button-icon button-icon-sm" onClick={() => setMenuId(menuId === u.id ? null : u.id)}>⋯</button>
+                    {menuId === u.id && (
+                      <div style={{ position: 'absolute', top: '100%', right: 0, background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow-lg)', zIndex: 50, minWidth: 150, overflow: 'hidden' }}>
+                        <button style={{ display: 'block', width: '100%', padding: '0.45rem 0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text)', textAlign: 'left', fontFamily: 'inherit' }} onClick={() => { showToast(`👤 ${u.name} profile`); setMenuId(null) }}>👤 View Profile</button>
+                        <button style={{ display: 'block', width: '100%', padding: '0.45rem 0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--text)', textAlign: 'left', fontFamily: 'inherit' }} onClick={() => { showToast(`💬 Messaging ${u.name}...`); setMenuId(null) }}>💬 Send Message</button>
+                        <button style={{ display: 'block', width: '100%', padding: '0.45rem 0.8rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.78rem', color: 'var(--red)', textAlign: 'left', fontFamily: 'inherit' }} onClick={() => { showToast(`🚫 ${u.name} removed`); setMenuId(null) }}>🚫 Remove</button>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
