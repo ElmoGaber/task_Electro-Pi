@@ -1,22 +1,14 @@
-import { useMemo, useRef } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts'
-import { useAuth } from '@/context/useAuth'
-import { useTheme } from '@/context/useTheme'
+import { AppLayout } from '@/components/AppLayout'
 import { useTaskList } from '@/hooks/useTasks'
-import { LanguageToggle } from '@/components/LanguageToggle'
-import { SettingsBar } from '@/components/SettingsBar'
 
-const COLORS = { 'To Do': '#6366f1', 'In Progress': '#f59e0b', Done: '#10b981' }
-const PRIORITY_COLORS = { Low: '#10b981', Medium: '#f59e0b', High: '#ef4444' }
+const COLORS = { 'To Do': '#8A4DFF', 'In Progress': '#FF8A4C', Done: '#4CD964' }
+const PRIORITY_COLORS = { Low: '#4CD964', Medium: '#FFD84D', High: '#FF3B30' }
 
 export function AnalyticsPage() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const { theme, toggle: toggleTheme } = useTheme()
-  const pageRef = useRef<HTMLDivElement>(null)
 
   const { data: tasks, isLoading } = useTaskList({})
 
@@ -34,64 +26,54 @@ export function AnalyticsPage() {
     return Object.entries(counts).map(([name, value]) => ({ name: t(`priority.${name}`), value, fill: PRIORITY_COLORS[name as keyof typeof PRIORITY_COLORS] }))
   }, [tasks, t])
 
-  const overdueCount = useMemo(() => {
-    if (!tasks) return 0
-    const today = new Date(); today.setHours(0, 0, 0, 0)
-    return tasks.filter((t) => t.status !== 'Done' && new Date(t.dueDate) < today).length
-  }, [tasks])
+  const total = tasks?.length ?? 0
+  const done = tasks?.filter((t) => t.status === 'Done').length ?? 0
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0
 
   if (isLoading) {
-    return <div className="container"><p>{t('app.loading')}</p></div>
+    return (
+      <AppLayout tasks={tasks} showRightPanel={false}>
+        <p>{t('app.loading')}...</p>
+      </AppLayout>
+    )
   }
 
   return (
-    <main className="container" ref={pageRef}>
-      <header className="page-header">
-        <div className="page-header-left">
+    <AppLayout tasks={tasks} showRightPanel={false}>
+      <div className="page-header-wrap">
+        <div>
           <h1>{t('dashboard.analytics')}</h1>
-          <span className="subtle">{t('app.welcome', { name: user?.name || 'User' })}</span>
+          <p>{t('analytics.subtitle', 'Track your productivity and progress')}</p>
         </div>
-        <div className="actions">
-          <LanguageToggle />
-          <SettingsBar />
-          <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
-          </button>
-          <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/')}>
-            {t('tasks.backToDashboard')}
-          </button>
-          <button className="button button-secondary button-sm" type="button" onClick={logout}>
-            {t('dashboard.logout')}
-          </button>
-        </div>
-      </header>
+      </div>
 
-      <div className="analytics-grid">
-        <div className="card stat-card">
-          <div className="stat-value">{tasks?.length ?? 0}</div>
-          <div className="stat-label">{t('dashboard.total')}</div>
+      <div className="stats-row">
+        <div className="stat-card stat-card--orange">
+          <div className="stat-card-left">
+            <span className="stat-card-label">{t('dashboard.total')}</span>
+            <span className="stat-card-number">{total}</span>
+          </div>
+          <div className="stat-card-icon">📊</div>
         </div>
-        <div className="card stat-card">
-          <div className="stat-value">{statusData.find((s) => s.name === t('status.To Do'))?.value ?? 0}</div>
-          <div className="stat-label">{t('dashboard.toDo')}</div>
+        <div className="stat-card stat-card--purple">
+          <div className="stat-card-left">
+            <span className="stat-card-label">{t('dashboard.done')}</span>
+            <span className="stat-card-number">{done}</span>
+          </div>
+          <div className="stat-card-icon">✓</div>
         </div>
-        <div className="card stat-card">
-          <div className="stat-value">{statusData.find((s) => s.name === t('status.In Progress'))?.value ?? 0}</div>
-          <div className="stat-label">{t('dashboard.inProgress')}</div>
-        </div>
-        <div className="card stat-card">
-          <div className="stat-value">{statusData.find((s) => s.name === t('status.Done'))?.value ?? 0}</div>
-          <div className="stat-label">{t('dashboard.done')}</div>
-        </div>
-        <div className="card stat-card stat-card--danger">
-          <div className="stat-value">{overdueCount}</div>
-          <div className="stat-label">{t('dashboard.overdue')}</div>
+        <div className="stat-card stat-card--blue">
+          <div className="stat-card-left">
+            <span className="stat-card-label">{t('dashboard.completed', 'Completion')}</span>
+            <span className="stat-card-number">{pct}%</span>
+          </div>
+          <div className="stat-card-icon">📈</div>
         </div>
       </div>
 
       <div className="chart-grid">
         <div className="card chart-card">
-          <h3>{t('analytics.byStatus', 'Tasks by Status')}</h3>
+          <h3>{t('analytics.byStatus')}</h3>
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={statusData}>
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -104,7 +86,7 @@ export function AnalyticsPage() {
           </ResponsiveContainer>
         </div>
         <div className="card chart-card">
-          <h3>{t('analytics.byPriority', 'Tasks by Priority')}</h3>
+          <h3>{t('analytics.byPriority')}</h3>
           <ResponsiveContainer width="100%" height={260}>
             <PieChart>
               <Pie data={priorityData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
@@ -116,6 +98,6 @@ export function AnalyticsPage() {
           </ResponsiveContainer>
         </div>
       </div>
-    </main>
+    </AppLayout>
   )
 }

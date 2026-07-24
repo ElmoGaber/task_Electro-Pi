@@ -23,14 +23,14 @@ export const autoSeed = async (): Promise<void> => {
   })
 
   const tasks = [
-    { user: user._id, title: 'Set up project repository', description: 'Initialize git repo and push the initial commit.', status: 'Done', priority: 'High', dueDate: new Date('2025-07-20') },
-    { user: user._id, title: 'Design database schema', description: 'Define User and Task models with Mongoose.', status: 'Done', priority: 'High', dueDate: new Date('2025-07-22') },
-    { user: user._id, title: 'Implement authentication', description: 'Build register/login endpoints with JWT and bcrypt.', status: 'In Progress', priority: 'High', dueDate: new Date('2025-07-28') },
-    { user: user._id, title: 'Create task CRUD API', description: 'Build endpoints for creating, reading, updating, and deleting tasks.', status: 'In Progress', priority: 'Medium', dueDate: new Date('2025-08-02') },
-    { user: user._id, title: 'Build dashboard UI', description: 'Create the main dashboard page with task list, filters, and search.', status: 'To Do', priority: 'Medium', dueDate: new Date('2025-08-10') },
-    { user: user._id, title: 'Add dark mode support', description: 'Implement theme toggle with light/dark mode using CSS variables.', status: 'To Do', priority: 'Low', dueDate: new Date('2025-08-15') },
-    { user: user._id, title: 'Write unit tests', description: 'Add test coverage for auth and task controllers.', status: 'To Do', priority: 'Low', dueDate: new Date('2025-08-20') },
-    { user: user._id, title: 'Submit final project', description: 'Package and submit the completed project for review.', status: 'To Do', priority: 'High', dueDate: new Date('2025-07-15') },
+    { user: user._id, title: 'Finance App Dashboard', description: 'Design the main dashboard layout with analytics and charts.', status: 'Done', priority: 'High', dueDate: new Date('2025-07-20') },
+    { user: user._id, title: 'Crypto Landing Page', description: 'Build a modern landing page for the crypto tracking app.', status: 'Done', priority: 'High', dueDate: new Date('2025-07-22') },
+    { user: user._id, title: 'E-learning Platform Backend', description: 'Implement REST API for course management and user progress.', status: 'In Progress', priority: 'High', dueDate: new Date('2025-07-28') },
+    { user: user._id, title: 'E-commerce Checkout Flow', description: 'Build the complete checkout flow with payment integration.', status: 'In Progress', priority: 'Medium', dueDate: new Date('2025-08-02') },
+    { user: user._id, title: 'Dark Mode Implementation', description: 'Add dark/light theme toggle with system preference detection.', status: 'Editing', priority: 'Medium', dueDate: new Date('2025-08-05') },
+    { user: user._id, title: 'User Profile Page', description: 'Create the user profile page with avatar upload and settings.', status: 'Editing', priority: 'Low', dueDate: new Date('2025-08-08') },
+    { user: user._id, title: 'Notification System', description: 'Build real-time notifications with Socket.IO integration.', status: 'To Do', priority: 'High', dueDate: new Date('2025-08-15') },
+    { user: user._id, title: 'Mobile Responsive Design', description: 'Ensure the app works perfectly on all screen sizes.', status: 'To Do', priority: 'Medium', dueDate: new Date('2025-08-20') },
   ]
 
   await Task.insertMany(tasks)

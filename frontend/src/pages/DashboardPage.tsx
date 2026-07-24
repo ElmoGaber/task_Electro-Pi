@@ -1,27 +1,18 @@
 import { useCallback, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { DndContext, DragOverlay, closestCorners, PointerSensor, useSensor, useSensors, type DragStartEvent, type DragEndEvent } from '@dnd-kit/core'
-import type { Task } from '@/types'
+import type { Task, TaskStatus, TaskFiltersState } from '@/types'
+import { AppLayout } from '@/components/AppLayout'
 import { TaskForm } from '@/components/TaskForm'
 import { TaskFilters } from '@/components/TaskFilters'
 import { KanbanBoard } from '@/components/KanbanBoard'
 import { KanbanCard } from '@/components/KanbanCard'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { ExportMenu } from '@/components/ExportMenu'
-import { LanguageToggle } from '@/components/LanguageToggle'
-import { SettingsBar } from '@/components/SettingsBar'
-import { useAuth } from '@/context/useAuth'
-import { useTheme } from '@/context/useTheme'
 import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask, useUpdateTaskStatus } from '@/hooks/useTasks'
-import type { TaskFiltersState, TaskFormValues } from '@/types'
 
 export function DashboardPage() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuth()
-  const { theme, toggle: toggleTheme } = useTheme()
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [filters, setFilters] = useState<TaskFiltersState>({ search: '', status: '', priority: '' })
@@ -35,8 +26,7 @@ export function DashboardPage() {
     return params
   }, [filters])
 
-  const { data: tasks, isLoading, error } = useTaskList(queryParams)
-  const hasFilters = Boolean(filters.search || filters.status || filters.priority)
+  const { data: tasks, isLoading } = useTaskList(queryParams)
 
   const { mutateAsync: createTask, isPending: isCreating } = useCreateTask()
   const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTask(editingTask?._id ?? null)
@@ -44,6 +34,15 @@ export function DashboardPage() {
   const { mutateAsync: updateStatus } = useUpdateTaskStatus()
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }))
+
+  const stats = useMemo(() => {
+    if (!tasks) return { upcoming: 0, inProgress: 0, completed: 0 }
+    return {
+      upcoming: tasks.filter((t) => t.status === 'To Do').length,
+      inProgress: tasks.filter((t) => t.status === 'In Progress').length,
+      completed: tasks.filter((t) => t.status === 'Done').length,
+    }
+  }, [tasks])
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     if (!tasks) return
@@ -55,26 +54,20 @@ export function DashboardPage() {
     setActiveDrag(null)
     const { active, over } = event
     if (!over || !active) return
-
     const taskId = active.id as string
-    const validStatuses: Task['status'][] = ['To Do', 'In Progress', 'Done']
-
-    let newStatus: Task['status'] | null = null
-    if (validStatuses.includes(over.id as Task['status'])) {
-      newStatus = over.id as Task['status']
+    const validStatuses: TaskStatus[] = ['To Do', 'In Progress', 'Editing', 'Done']
+    let newStatus: TaskStatus | null = null
+    if (validStatuses.includes(over.id as TaskStatus)) {
+      newStatus = over.id as TaskStatus
     } else {
       const overTask = tasks?.find((t) => t._id === over.id)
       if (overTask) newStatus = overTask.status
     }
-
     if (!newStatus) return
     const oldTask = tasks?.find((t) => t._id === taskId)
     if (!oldTask || oldTask.status === newStatus) return
-
-    try {
-      await updateStatus({ taskId, status: newStatus })
-      toast.success(t('dashboard.taskUpdated'))
-    } catch { toast.error(t('app.error')) }
+    try { await updateStatus({ taskId, status: newStatus }); toast.success(t('dashboard.taskUpdated')) }
+    catch { toast.error(t('app.error')) }
   }, [updateStatus, tasks, t])
 
   const handleCreate = useCallback(async (values: TaskFormValues & { media?: string[] }) => {
@@ -94,37 +87,50 @@ export function DashboardPage() {
     catch { toast.error(t('app.error')) }
   }, [deleteTask, deleteTarget, t])
 
-  const handleEdit = useCallback((task: Task) => { setEditingTask(task); window.scrollTo({ top: 0, behavior: 'smooth' }) }, [])
-  const handleCancelEdit = useCallback(() => setEditingTask(null), [])
-
   const saving = isCreating || isUpdating
 
   return (
-    <main className="container">
-      <header className="page-header">
-        <div className="page-header-left">
-          <h1>{t('dashboard.title')}</h1>
-          <span className="subtle">{t('app.welcome', { name: user?.name || 'User' })}</span>
+    <AppLayout tasks={tasks}>
+      {/* Page Header */}
+      <div className="page-header-wrap animate-in">
+        <div>
+          <h1>{t('dashboard.title')} Summary</h1>
+          <p>{t('dashboard.subtitle', 'Add new project and manage all project')}</p>
         </div>
-        <div className="actions">
-          <LanguageToggle />
-          <SettingsBar />
-          <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
-          </button>
-          <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/tasks')}>
-            {t('dashboard.tasks')}
-          </button>
-          <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/analytics')}>
-            {t('dashboard.analytics')}
-          </button>
-          <ExportMenu tasks={tasks} />
-          <button className="button button-secondary button-sm" type="button" onClick={logout}>
-            {t('dashboard.logout')}
-          </button>
-        </div>
-      </header>
+        <button className="button" type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+          + {t('dashboard.addTask')}
+        </button>
+      </div>
 
+      {/* Stats Cards */}
+      <div className="stats-row animate-up">
+        <div className="stat-card stat-card--orange">
+          <div className="stat-card-left">
+            <span className="stat-card-label">{t('dashboard.upcoming', 'Upcoming')}</span>
+            <span className="stat-card-number">{stats.upcoming}</span>
+          </div>
+          <div className="stat-card-icon">📄</div>
+          <span className="stat-card-arrow">→</span>
+        </div>
+        <div className="stat-card stat-card--purple">
+          <div className="stat-card-left">
+            <span className="stat-card-label">{t('dashboard.inProgress')}</span>
+            <span className="stat-card-number">{stats.inProgress}</span>
+          </div>
+          <div className="stat-card-icon">✏️</div>
+          <span className="stat-card-arrow">→</span>
+        </div>
+        <div className="stat-card stat-card--blue">
+          <div className="stat-card-left">
+            <span className="stat-card-label">{t('dashboard.completed', 'Completed')}</span>
+            <span className="stat-card-number">{stats.completed}</span>
+          </div>
+          <div className="stat-card-icon">✓</div>
+          <span className="stat-card-arrow">→</span>
+        </div>
+      </div>
+
+      {/* Task Form */}
       <TaskForm
         key={editingTask?._id ?? 'new'}
         defaultValues={editingTask ? {
@@ -134,44 +140,69 @@ export function DashboardPage() {
           media: editingTask.media,
         } : undefined}
         onSubmit={editingTask ? handleUpdate : handleCreate}
-        onCancel={handleCancelEdit}
+        onCancel={() => setEditingTask(null)}
         saving={saving}
         isEditing={Boolean(editingTask)}
       />
 
+      {/* Filters */}
       <TaskFilters onChange={setFilters} />
 
+      {/* Kanban Board */}
       {isLoading ? (
         <div className="kanban-board">
-          {[1, 2, 3].map((c) => (
+          {[1, 2, 3, 4].map((c) => (
             <div key={c} className="kanban-col">
-              <div className="kanban-col-header"><span className="skeleton-line" style={{ width: '60%' }} /></div>
+              <div className="kanban-col-header"><span className="skeleton-line" style={{ width: '60%', height: 14 }} /></div>
               <div className="kanban-col-body">
                 {[1, 2].map((r) => <div key={r} className="skeleton-card" />)}
               </div>
             </div>
           ))}
         </div>
-      ) : error ? (
-        <div className="card feedback error-box" role="alert">{error.message}</div>
       ) : tasks && tasks.length > 0 ? (
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-          <KanbanBoard tasks={tasks} onEdit={handleEdit} onDelete={setDeleteTarget} />
+          <KanbanBoard tasks={tasks} onEdit={setEditingTask} onDelete={setDeleteTarget} />
           <DragOverlay>
             {activeDrag ? <KanbanCard task={activeDrag} onEdit={() => {}} onDelete={() => {}} /> : null}
           </DragOverlay>
         </DndContext>
       ) : (
-        <div className="card empty-state animate-in">
-          <svg className="empty-icon" width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect x="12" y="20" width="56" height="48" rx="6" fill="var(--border)" />
-            <rect x="20" y="30" width="30" height="4" rx="2" fill="var(--text-tertiary)" />
-            <rect x="20" y="40" width="40" height="4" rx="2" fill="var(--text-tertiary)" />
-            <circle cx="60" cy="56" r="16" fill="var(--primary-bg)" />
-            <path d="M60 48v16M52 56h16" stroke="var(--primary)" strokeWidth="2.5" strokeLinecap="round" />
-          </svg>
-          <h3>{hasFilters ? t('dashboard.noMatch') : t('dashboard.noTasks')}</h3>
-          <p>{hasFilters ? t('dashboard.noMatchDesc') : t('dashboard.noTasksDesc')}</p>
+        <div className="card empty-state animate-in" style={{ textAlign: 'center', padding: '2rem' }}>
+          <h3>{t('dashboard.noTasks')}</h3>
+          <p>{t('dashboard.noTasksDesc')}</p>
+        </div>
+      )}
+
+      {/* Timeline */}
+      {tasks && tasks.length > 0 && (
+        <div className="timeline-wrap animate-in">
+          <div className="section-header">
+            <h2>{t('dashboard.timeline', 'Timeline')}</h2>
+          </div>
+          <div className="timeline-months">
+            {['July', 'August', 'September'].map((m, i) => (
+              <div key={m} className={`timeline-month${i === 1 ? ' active' : ''}`}>{m}</div>
+            ))}
+          </div>
+          <div className="timeline-bars">
+            {tasks.slice(0, 4).map((task, i) => {
+              const colors = ['orange', 'purple', 'blue', 'pink']
+              const members = task.title.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2)
+              return (
+                <div key={task._id} className="timeline-bar-wrap" style={{ animationDelay: `${i * 0.1}s` }}>
+                  <span className="timeline-bar-label">{task.title.slice(0, 16)}{task.title.length > 16 ? '...' : ''}</span>
+                  <div className={`timeline-bar timeline-bar--${colors[i]}`}>
+                    <span>{task.status}</span>
+                    <div className="timeline-bar-avatars">
+                      <div className="timeline-bar-avatar" style={{ background: ['#FF8A4C','#8A4DFF','#4F6BFF','#FF6B9D'][i] }}>{members}</div>
+                      <div className="timeline-bar-avatar" style={{ background: ['#FFB084','#B084FF','#7B8FFF','#FF9DBD'][i] }}>JD</div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 
@@ -183,6 +214,6 @@ export function DashboardPage() {
         onCancel={() => setDeleteTarget(null)}
         loading={isDeleting}
       />
-    </main>
+    </AppLayout>
   )
 }

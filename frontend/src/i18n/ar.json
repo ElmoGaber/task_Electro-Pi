@@ -116,6 +116,24 @@
     "noSuggestions": "لا توجد اقتراحات بعد. أنشئ بعض المهام!",
     "autoRefresh": "تحديث تلقائي كل دقيقتين"
   },
+  "nav": {
+    "overview": "نظرة عامة",
+    "projects": "المشاريع",
+    "activity": "النشاطات",
+    "messages": "الرسائل",
+    "members": "الأعضاء",
+    "calendar": "التقويم",
+    "settings": "الإعدادات",
+    "updates": "التحديثات",
+    "searchPlaceholder": "ابحث عن شيء هنا...",
+    "darkMode": "الوضع الداكن"
+  },
+  "panel": {
+    "messages": "آخر الرسائل",
+    "team": "أعضاء الفريق",
+    "today": "مهام اليوم",
+    "seeAll": "عرض الكل"
+  },
   "kanban": {
     "dropHere": "أسقط المهام هنا",
     "dragHint": "اسحب المهام بين الأعمدة لتحديث الحالة"

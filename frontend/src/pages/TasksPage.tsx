@@ -1,25 +1,18 @@
 import { useMemo, useState, useCallback } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { Task, TaskFiltersState } from '@/types'
+import { AppLayout } from '@/components/AppLayout'
 import { TaskFilters } from '@/components/TaskFilters'
 import { TaskForm } from '@/components/TaskForm'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { ExportMenu } from '@/components/ExportMenu'
-import { LanguageToggle } from '@/components/LanguageToggle'
-import { SettingsBar } from '@/components/SettingsBar'
-import { useAuth } from '@/context/useAuth'
-import { useTheme } from '@/context/useTheme'
-import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask } from '@/hooks/useTasks'
 import { TasksGridView } from '@/components/TasksGridView'
+import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask } from '@/hooks/useTasks'
 import type { TaskFormValues } from '@/types'
 
 export function TasksPage() {
   const { t } = useTranslation()
-  const navigate = useNavigate()
-  const { logout } = useAuth()
-  const { theme, toggle: toggleTheme } = useTheme()
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [filters, setFilters] = useState<TaskFiltersState>({ search: '', status: '', priority: '' })
@@ -56,33 +49,17 @@ export function TasksPage() {
     catch { toast.error(t('app.error')) }
   }, [deleteTask, deleteTarget, t])
 
-  const handleEdit = useCallback((task: Task) => { setEditingTask(task); window.scrollTo({ top: 0, behavior: 'smooth' }) }, [])
-  const handleCancelEdit = useCallback(() => setEditingTask(null), [])
-
   const saving = isCreating || isUpdating
 
   return (
-    <main className="container">
-      <header className="page-header">
-        <div className="page-header-left">
+    <AppLayout tasks={tasks}>
+      <div className="page-header-wrap">
+        <div>
           <h1>{t('tasks.title')}</h1>
-          <span className="subtle">{t('tasks.subtitle')}</span>
+          <p>{t('tasks.subtitle')}</p>
         </div>
-        <div className="actions">
-          <LanguageToggle />
-          <SettingsBar />
-          <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label="Toggle theme">
-            {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
-          </button>
-          <button className="button button-ghost button-sm" type="button" onClick={() => navigate('/')}>
-            {t('tasks.backToDashboard')}
-          </button>
-          <ExportMenu tasks={tasks} />
-          <button className="button button-secondary button-sm" type="button" onClick={logout}>
-            {t('dashboard.logout')}
-          </button>
-        </div>
-      </header>
+        <ExportMenu tasks={tasks} />
+      </div>
 
       <TaskForm
         key={editingTask?._id ?? 'new'}
@@ -93,7 +70,7 @@ export function TasksPage() {
           media: editingTask.media,
         } : undefined}
         onSubmit={editingTask ? handleUpdate : handleCreate}
-        onCancel={handleCancelEdit}
+        onCancel={() => setEditingTask(null)}
         saving={saving}
         isEditing={Boolean(editingTask)}
       />
@@ -102,7 +79,7 @@ export function TasksPage() {
 
       <TasksGridView
         tasks={tasks} loading={isLoading} error={error} hasFilters={hasFilters}
-        onEdit={handleEdit} onDelete={setDeleteTarget}
+        onEdit={setEditingTask} onDelete={setDeleteTarget}
         onClearFilters={() => setFilters({ search: '', status: '', priority: '' })}
       />
 
@@ -114,6 +91,6 @@ export function TasksPage() {
         onCancel={() => setDeleteTarget(null)}
         loading={isDeleting}
       />
-    </main>
+    </AppLayout>
   )
 }

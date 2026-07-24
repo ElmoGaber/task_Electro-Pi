@@ -116,6 +116,24 @@
     "noSuggestions": "No suggestions yet. Create some tasks!",
     "autoRefresh": "Auto-refreshes every 2 min"
   },
+  "nav": {
+    "overview": "Overview",
+    "projects": "Projects",
+    "activity": "Activity",
+    "messages": "Messages",
+    "members": "Members",
+    "calendar": "Calendar",
+    "settings": "Settings",
+    "updates": "Updates",
+    "searchPlaceholder": "Search something here...",
+    "darkMode": "Dark Mode"
+  },
+  "panel": {
+    "messages": "Recent Messages",
+    "team": "Team Members",
+    "today": "Today's Tasks",
+    "seeAll": "See All"
+  },
   "kanban": {
     "dropHere": "Drop tasks here",
     "dragHint": "Drag tasks between columns to update status"

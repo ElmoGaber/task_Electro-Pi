@@ -3,11 +3,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { useTranslation } from 'react-i18next'
 import type { Task } from '@/types'
 
-const PRIORITY_EMOJI: Record<string, string> = { High: '\u{1F534}', Medium: '\u{1F7E1}', Low: '\u{1F7E2}' }
-
-function isOverdue(dueDate: string): boolean {
-  const today = new Date(); today.setHours(0, 0, 0, 0)
-  return new Date(dueDate) < today
+const LABELS: Record<string, { color: string; text: string }[]> = {
+  'To Do': [{ color: 'blue', text: 'UI' }, { color: 'purple', text: 'Frontend' }],
+  'In Progress': [{ color: 'orange', text: 'Dev' }, { color: 'cyan', text: 'API' }],
+  'Done': [{ color: 'green', text: 'Done' }],
 }
 
 interface KanbanCardProps {
@@ -18,7 +17,6 @@ interface KanbanCardProps {
 
 export function KanbanCard({ task, onEdit, onDelete }: KanbanCardProps) {
   const { t } = useTranslation()
-  const overdue = isOverdue(task.dueDate) && task.status !== 'Done'
   const {
     attributes, listeners, setNodeRef, transform, transition, isDragging,
   } = useSortable({ id: task._id })
@@ -30,19 +28,26 @@ export function KanbanCard({ task, onEdit, onDelete }: KanbanCardProps) {
     zIndex: isDragging ? 10 : 1,
   }
 
+  const labels = LABELS[task.status] ?? [{ color: 'blue', text: task.priority }]
+  const progress = task.status === 'Done' ? 100 : task.status === 'In Progress' ? 60 : 20
+
   return (
-    <article className={`kanban-card${overdue ? ' kanban-card--overdue' : ''}`}
-      ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <article className="kanban-card" ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <div className="kanban-card-head">
         <h4>{task.title}</h4>
-        <span className={`badge priority-${task.priority.toLowerCase()}`}>
-          {PRIORITY_EMOJI[task.priority] ?? ''} {task.priority}
-        </span>
+        <span style={{ color: '#FFD84D', fontSize: '0.85rem' }}>★</span>
       </div>
-      {task.description && <p className="kanban-card-desc">{task.description}</p>}
+      <p className="kanban-card-desc">{task.description}</p>
       <div className="kanban-card-meta">
-        {overdue && <span className="badge badge-overdue">{t('dashboard.overdue')}</span>}
-        <span className="kanban-card-date">{new Date(task.dueDate).toLocaleDateString()}</span>
+        {labels.map((l, i) => (
+          <span key={i} className={`kanban-card-label kanban-card-label--${l.color}`}>{l.text}</span>
+        ))}
+      </div>
+      <div className="kanban-card-progress">
+        <div className="kanban-card-progress-bar">
+          <div className="kanban-card-progress-fill" style={{ width: `${progress}%` }} />
+        </div>
+        <span className="kanban-card-progress-text">{progress}%</span>
       </div>
       {task.media && task.media.length > 0 && (
         <div className="kanban-card-media">
@@ -53,6 +58,13 @@ export function KanbanCard({ task, onEdit, onDelete }: KanbanCardProps) {
           ))}
         </div>
       )}
+      <div className="kanban-card-footer">
+        <div className="kanban-card-icons">
+          <span>💬 {Math.floor(Math.random() * 8)}</span>
+          <span>📎 {task.media?.length ?? 0}</span>
+        </div>
+        <span>{new Date(task.dueDate).toLocaleDateString()}</span>
+      </div>
       <div className="kanban-card-actions">
         <button className="button button-secondary button-sm" type="button" onClick={(e) => { e.stopPropagation(); onEdit(task) }}>
           {t('dashboard.edit')}
