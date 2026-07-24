@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AppLayout } from '@/components/AppLayout'
-import { fakeProjects, fakeUsers } from '@/lib/fakeData'
+import { ProjectModal } from '@/components/ProjectModal'
+import { fakeProjects, fakeUsers, genId } from '@/lib/fakeData'
 
 type ViewMode = 'grid' | 'kanban' | 'table'
 type FilterStatus = 'All' | 'Completed' | 'In Progress' | 'Pending' | 'Archived'
@@ -12,20 +13,32 @@ export function ProjectsPage() {
   const [search, setSearch] = useState('')
   const [sort, setSort] = useState('name')
   const [page, setPage] = useState(1)
+  const [projects, setProjects] = useState(fakeProjects)
+  const [showModal, setShowModal] = useState(false)
   const [toast, setToast] = useState('')
   const perPage = 8
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000) }
 
+  const handleCreateProject = (data: { name: string; description: string; status: string; priority: string; deadline: string; owner: string; image: string; color: string }) => {
+    const newProject = {
+      id: genId(), name: data.name, description: data.description, status: data.status, priority: data.priority,
+      deadline: data.deadline, owner: data.owner, image: data.image, color: data.color,
+      members: 1, progress: 0, tasks: 0, completed: 0, budget: '$0', tech: [], lastActivity: 'just now',
+    }
+    setProjects((prev) => [newProject, ...prev])
+    showToast(`📂 Project "${data.name}" created!`)
+  }
+
   const filtered = useMemo(() => {
-    let items = [...fakeProjects]
+    let items = [...projects]
     if (filter !== 'All') items = items.filter((p) => p.status === filter)
     if (search.trim()) items = items.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()))
     if (sort === 'name') items.sort((a, b) => a.name.localeCompare(b.name))
     if (sort === 'progress') items.sort((a, b) => b.progress - a.progress)
     if (sort === 'deadline') items.sort((a, b) => a.deadline.localeCompare(b.deadline))
     return items
-  }, [filter, search, sort])
+  }, [filter, search, sort, projects])
 
   const paginated = filtered.slice(0, page * perPage)
   const filters: FilterStatus[] = ['All', 'Completed', 'In Progress', 'Pending', 'Archived']
@@ -38,7 +51,7 @@ export function ProjectsPage() {
         <div><h1>Projects</h1><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Manage all your projects in one place</p></div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input style={{ padding: '0.5rem 0.8rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.82rem', width: 200 }} placeholder="Search projects..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <button className="button" onClick={() => showToast('📂 New project creation form coming soon!')}>+ New Project</button>
+          <button className="button" onClick={() => setShowModal(true)}>+ New Project</button>
         </div>
       </div>
 
@@ -155,6 +168,8 @@ export function ProjectsPage() {
           <button className="button button-secondary" onClick={() => setPage((p) => p + 1)}>Load More ({filtered.length - paginated.length} remaining)</button>
         </div>
       )}
+
+      <ProjectModal open={showModal} onClose={() => setShowModal(false)} onSubmit={handleCreateProject} />
     </motion.div>
     </AppLayout>
   )

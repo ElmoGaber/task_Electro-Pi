@@ -3,7 +3,8 @@ import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/AppLayout'
-import { fakeProjects, fakeUsers, fakeActivities, fakeMessages, fakeEvents } from '@/lib/fakeData'
+import { ProjectModal } from '@/components/ProjectModal'
+import { fakeProjects, fakeUsers, fakeActivities, fakeMessages, fakeEvents, genId } from '@/lib/fakeData'
 import { useAuth } from '@/context/useAuth'
 
 const container = { hidden: {}, show: { transition: { staggerChildren: 0.06 } } }
@@ -17,6 +18,11 @@ export function OverviewPage() {
     const h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening'
   })
   const [checkedTasks, setCheckedTasks] = useState<Set<string>>(new Set())
+  const [projects, setProjects] = useState(fakeProjects)
+  const [showProjectModal, setShowProjectModal] = useState(false)
+  const [toast, setToast] = useState('')
+
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000) }
 
   const toggleTask = (id: string) => {
     setCheckedTasks((prev) => {
@@ -26,23 +32,34 @@ export function OverviewPage() {
     })
   }
 
-  const upcoming = fakeProjects.filter((p) => p.status === 'In Progress').slice(0, 4)
+  const handleCreateProject = (data: { name: string; description: string; status: string; priority: string; deadline: string; owner: string; image: string; color: string }) => {
+    const newProject = {
+      id: genId(), name: data.name, description: data.description, status: data.status, priority: data.priority,
+      deadline: data.deadline, owner: data.owner, image: data.image, color: data.color,
+      members: 1, progress: 0, tasks: 0, completed: 0, budget: '$0', tech: [], lastActivity: 'just now',
+    }
+    setProjects((prev) => [newProject, ...prev])
+    showToast(`📂 Project "${data.name}" created!`)
+  }
+
+  const upcoming = projects.filter((p) => p.status === 'In Progress').slice(0, 4)
   const recent = fakeActivities.slice(0, 10)
   const msgs = fakeMessages.filter((m) => m.unread).slice(0, 4)
-  const tasksToday = fakeProjects.slice(0, 5)
+  const tasksToday = projects.slice(0, 5)
   const teamPreview = fakeUsers.slice(0, 8)
   const eventsToday = fakeEvents.slice(0, 3)
 
   return (
     <AppLayout>
     <motion.div className="overview-page" variants={container} initial="hidden" animate="show">
+      {toast && <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', background: 'var(--primary)', color: '#fff', padding: '0.75rem 1.2rem', borderRadius: 'var(--radius)', zIndex: 500, fontSize: '0.85rem', boxShadow: 'var(--shadow-lg)' }}>{toast}</div>}
       <motion.div className="page-header-wrap" variants={item}>
         <div>
           <h1 style={{ fontSize: '1.6rem' }}>{greeting}, {user?.name?.split(' ')[0] || 'User'} 👋</h1>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Here's what's happening with your projects today.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className="button" onClick={() => navigate('/projects')}>+ New Project</button>
+          <button className="button" onClick={() => setShowProjectModal(true)}>+ New Project</button>
         </div>
       </motion.div>
 
@@ -164,6 +181,7 @@ export function OverviewPage() {
           })}
         </div>
       </motion.div>
+      <ProjectModal open={showProjectModal} onClose={() => setShowProjectModal(false)} onSubmit={handleCreateProject} />
     </motion.div>
     </AppLayout>
   )

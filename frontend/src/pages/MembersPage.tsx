@@ -1,42 +1,59 @@
 import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { AppLayout } from '@/components/AppLayout'
-import { fakeUsers } from '@/lib/fakeData'
+import { InviteMemberModal } from '@/components/InviteMemberModal'
+import { fakeUsers, genId } from '@/lib/fakeData'
 
 const deptColors: Record<string, string> = { Engineering: '#4F7CFF', Design: '#8A4DFF', Product: '#22C55E', Marketing: '#FF8A4C', Support: '#F59E0B', Sales: '#EF4444' }
 const roles = ['All', 'Admin', 'Manager', 'Developer', 'Designer', 'Viewer']
+
+const colorPalette = ['#4F7CFF','#8A4DFF','#FF8A4C','#22C55E','#F59E0B','#EF4444','#FF6B9D','#4DD8FF','#A78BFA','#34D399']
 
 export function MembersPage() {
   const [roleFilter, setRoleFilter] = useState('All')
   const [search, setSearch] = useState('')
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const [menuId, setMenuId] = useState<string | null>(null)
+  const [users, setUsers] = useState(fakeUsers)
+  const [showInviteModal, setShowInviteModal] = useState(false)
   const [toast, setToast] = useState('')
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2000) }
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 2500) }
+
+  const handleInvite = (data: { name: string; email: string; role: string; department: string }) => {
+    const initials = data.name.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()
+    const newUser = {
+      id: genId(), name: data.name, email: data.email, avatar: initials,
+      role: data.role, department: data.department, phone: '-', joined: 'Today',
+      color: colorPalette[Math.floor(Math.random() * colorPalette.length)],
+      bio: 'New team member', tasksCompleted: 0, rating: 0, timezone: 'UTC+0',
+    }
+    setUsers((prev) => [newUser, ...prev])
+    showToast(`✉️ Invitation sent to ${data.name} (${data.email})`)
+  }
 
   const filtered = useMemo(() => {
-    let items = [...fakeUsers]
+    let items = [...users]
     if (roleFilter !== 'All') items = items.filter((u) => u.role === roleFilter)
     if (search.trim()) items = items.filter((u) => u.name.toLowerCase().includes(search.toLowerCase()) || u.email.includes(search) || u.department.toLowerCase().includes(search))
     return items
-  }, [roleFilter, search])
+  }, [roleFilter, search, users])
 
   const deptCounts = useMemo(() => {
     const counts: Record<string, number> = {}
-    fakeUsers.forEach((u) => { counts[u.department] = (counts[u.department] || 0) + 1 })
+    users.forEach((u) => { counts[u.department] = (counts[u.department] || 0) + 1 })
     return counts
-  }, [])
+  }, [users])
 
   return (
     <AppLayout>
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
       {toast && <div style={{ position: 'fixed', bottom: '2rem', right: '2rem', background: 'var(--primary)', color: '#fff', padding: '0.75rem 1.2rem', borderRadius: 'var(--radius)', zIndex: 500, fontSize: '0.85rem', boxShadow: 'var(--shadow-lg)' }}>{toast}</div>}
       <div className="page-header-wrap">
-        <div><h1>Team Members</h1><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{fakeUsers.length} members across {Object.keys(deptCounts).length} departments</p></div>
+        <div><h1>Team Members</h1><p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{users.length} members across {Object.keys(deptCounts).length} departments</p></div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <input style={{ padding: '0.5rem 0.8rem', borderRadius: 'var(--radius)', border: '1px solid var(--border)', background: 'var(--bg)', color: 'var(--text)', fontSize: '0.82rem', width: 200 }} placeholder="Search members..." value={search} onChange={(e) => setSearch(e.target.value)} />
-          <button className="button" onClick={() => showToast('✉️ Invite link copied to clipboard!')}>+ Invite</button>
+          <button className="button" onClick={() => setShowInviteModal(true)}>+ Invite</button>
         </div>
       </div>
 
@@ -126,6 +143,7 @@ export function MembersPage() {
           </table>
         </div>
       )}
+      <InviteMemberModal open={showInviteModal} onClose={() => setShowInviteModal(false)} onSubmit={handleInvite} />
     </motion.div>
     </AppLayout>
   )
