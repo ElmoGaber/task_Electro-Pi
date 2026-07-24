@@ -5,11 +5,13 @@ import { TaskFilters } from '@/components/TaskFilters'
 import { TaskList } from '@/components/TaskList'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { useAuth } from '@/context/useAuth'
+import { useTheme } from '@/context/useTheme'
 import { useCreateTask, useDeleteTask, useTaskList, useUpdateTask } from '@/hooks/useTasks'
 import type { Task, TaskFiltersState, TaskFormValues } from '@/types'
 
 export function DashboardPage() {
   const { user, logout } = useAuth()
+  const { theme, toggle: toggleTheme } = useTheme()
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
   const [filters, setFilters] = useState<TaskFiltersState>({
@@ -27,13 +29,10 @@ export function DashboardPage() {
   }, [filters])
 
   const { data: tasks, isLoading, error } = useTaskList(queryParams)
-
   const hasFilters = Boolean(filters.search || filters.status || filters.priority)
 
   const { mutateAsync: createTask, isPending: isCreating } = useCreateTask()
-  const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTask(
-    editingTask?._id ?? null,
-  )
+  const { mutateAsync: updateTask, isPending: isUpdating } = useUpdateTask(editingTask?._id ?? null)
   const { mutateAsync: deleteTask, isPending: isDeleting } = useDeleteTask()
 
   const handleCreate = useCallback(
@@ -88,12 +87,17 @@ export function DashboardPage() {
     <main className="container">
       <header className="page-header card">
         <div>
-          <h1>Task Manager</h1>
+          <h1>TaskFlow</h1>
           <p className="subtle">Hello, {user?.name || 'User'}</p>
         </div>
-        <button className="button button-secondary" type="button" onClick={logout}>
-          Logout
-        </button>
+        <div className="actions">
+          <button className="button button-icon-only" type="button" onClick={toggleTheme} aria-label="Toggle theme">
+            {theme === 'light' ? '\u{1F319}' : '\u{2600}\u{FE0F}'}
+          </button>
+          <button className="button button-secondary" type="button" onClick={logout}>
+            Logout
+          </button>
+        </div>
       </header>
 
       <TaskForm

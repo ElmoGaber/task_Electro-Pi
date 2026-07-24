@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Link } from 'react-router-dom'
+import { Spinner } from './Spinner'
 import type { AuthFormValues } from '@/types'
 
 const loginSchema = z.object({
@@ -65,7 +66,8 @@ export function AuthForm({ mode, loading, serverError, onSubmit }: AuthFormProps
         {serverError && <div className="feedback error-box">{serverError}</div>}
 
         <button className="button" type="submit" disabled={loading}>
-          {loading ? 'Please wait...' : isLogin ? 'Login' : 'Create Account'}
+          {loading && <Spinner />}
+          {loading ? 'Please wait...' : isLogin ? 'Sign in' : 'Create Account'}
         </button>
 
         <p className="switch-auth">

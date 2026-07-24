@@ -12,6 +12,18 @@ interface TaskListProps {
   onClearFilters: () => void
 }
 
+const PRIORITY_EMOJI: Record<string, string> = {
+  High: '\u{1F534}',
+  Medium: '\u{1F7E1}',
+  Low: '\u{1F7E2}',
+}
+
+function isOverdue(dueDate: string): boolean {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return new Date(dueDate) < today
+}
+
 export function TaskList({
   tasks,
   loading,
@@ -45,41 +57,48 @@ export function TaskList({
 
   return (
     <div className="task-list">
-      {tasks.map((task) => (
-        <article className="card task-item" key={task._id}>
-          <div className="task-header">
-            <h3>{task.title}</h3>
-            <div className="task-meta">
-              <span
-                className={`badge status-${task.status.replace(/\s+/g, '-').toLowerCase()}`}
-              >
-                {task.status}
-              </span>
-              <span className={`badge priority-${task.priority.toLowerCase()}`}>
-                {task.priority}
-              </span>
+      {tasks.map((task) => {
+        const overdue = isOverdue(task.dueDate) && task.status !== 'Done'
+        return (
+          <article className={`card task-item${overdue ? ' task-item--overdue' : ''}`} key={task._id}>
+            <div className="task-header">
+              <h3>{task.title}</h3>
+              <div className="task-meta">
+                {overdue && <span className="badge badge-overdue">Overdue</span>}
+                <span
+                  className={`badge status-${task.status.replace(/\s+/g, '-').toLowerCase()}`}
+                >
+                  {task.status}
+                </span>
+                <span className={`badge priority-${task.priority.toLowerCase()}`}>
+                  {PRIORITY_EMOJI[task.priority] ?? ''} {task.priority}
+                </span>
+              </div>
             </div>
-          </div>
-          <p>{task.description}</p>
-          <p className="subtle">Due: {new Date(task.dueDate).toLocaleDateString()}</p>
-          <div className="actions">
-            <button
-              className="button button-secondary"
-              type="button"
-              onClick={() => onEdit(task)}
-            >
-              Edit
-            </button>
-            <button
-              className="button button-danger"
-              type="button"
-              onClick={() => onDelete(task._id)}
-            >
-              Delete
-            </button>
-          </div>
-        </article>
-      ))}
+            <p>{task.description}</p>
+            <p className="subtle">
+              Due: {new Date(task.dueDate).toLocaleDateString()}
+              {overdue && <span className="overdue-hint"> (overdue)</span>}
+            </p>
+            <div className="actions">
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={() => onEdit(task)}
+              >
+                Edit
+              </button>
+              <button
+                className="button button-danger"
+                type="button"
+                onClick={() => onDelete(task._id)}
+              >
+                Delete
+              </button>
+            </div>
+          </article>
+        )
+      })}
     </div>
   )
 }

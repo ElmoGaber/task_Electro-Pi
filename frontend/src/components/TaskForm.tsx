@@ -1,6 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { Spinner } from './Spinner'
 import { TASK_STATUSES, TASK_PRIORITIES } from '@/lib/constants'
 import type { TaskFormValues } from '@/types'
 
@@ -94,6 +95,7 @@ export function TaskForm({ defaultValues, onSubmit, onCancel, saving, isEditing 
 
       <div className="actions">
         <button className="button" type="submit" disabled={saving}>
+          {saving && <Spinner />}
           {saving ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Task'}
         </button>
         {isEditing && (

@@ -1,3 +1,5 @@
+import { Spinner } from './Spinner'
+
 interface ConfirmDialogProps {
   open: boolean
   title: string
@@ -31,6 +33,7 @@ export function ConfirmDialog({
             {cancelLabel}
           </button>
           <button className="button button-danger" type="button" onClick={onConfirm} disabled={loading}>
+            {loading && <Spinner />}
             {loading ? 'Deleting...' : confirmLabel}
           </button>
         </div>
