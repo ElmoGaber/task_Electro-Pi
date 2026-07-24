@@ -1,5 +1,5 @@
 import dotenv from 'dotenv'
-import app from './app'
+import app = require('./app')
 import { connectDatabase } from './config/db'
 import { autoSeed } from './utils/seed'
 

@@ -7,7 +7,8 @@ import { loginValidator, registerValidator } from '../validators/authValidators'
 const router = Router()
 
 router.post('/register', registerValidator, validateRequest, register)
-
 router.post('/login', loginRateLimiter, loginValidator, validateRequest, login)
 
-export default router
+console.log('[authRoutes] registering /login and /register')
+
+export = router

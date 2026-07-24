@@ -12,13 +12,9 @@ import {
 const router = Router()
 
 router.use(authMiddleware)
-
 router.get('/', listTaskValidator, validateRequest, listTasks)
-
 router.post('/', createTaskValidator, validateRequest, createTask)
-
 router.put('/:id', updateTaskValidator, validateRequest, updateTask)
-
 router.delete('/:id', deleteTaskValidator, validateRequest, deleteTask)
 
-export default router
+export = router
