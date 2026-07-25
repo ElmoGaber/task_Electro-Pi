@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { useAuth } from '@/context/useAuth'
 
-const SOCKET_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+const SOCKET_URL = import.meta.env.DEV
+  ? import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000'
+  : ''
 
 interface TypingData {
   userId: string
@@ -17,7 +19,7 @@ export function useSocket() {
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !SOCKET_URL) return
 
     const socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],

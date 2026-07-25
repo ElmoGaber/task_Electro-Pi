@@ -1,10 +1,13 @@
 import { type Response } from 'express'
 import path from 'path'
 import fs from 'fs'
+import os from 'os'
 import crypto from 'crypto'
 import type { AuthRequest } from '../middleware/authMiddleware'
 
-const UPLOAD_DIR = path.resolve(__dirname, '../../uploads')
+const UPLOAD_DIR = process.env.NODE_ENV === 'production'
+  ? path.join(os.tmpdir(), 'taskflow-uploads')
+  : path.resolve(__dirname, '../../uploads')
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true })
 
 export const uploadFile = async (req: AuthRequest, res: Response): Promise<Response> => {

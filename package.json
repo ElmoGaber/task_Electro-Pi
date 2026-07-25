@@ -1,13 +1,17 @@
 {
-  "name": "task_electro-pi",
+  "name": "taskflow",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "TaskFlow — Full-stack task management SaaS with kanban, AI assistant, i18n, and real-time features.",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd backend && npm ci && npx tsc && cd ../frontend && npm ci && npm run build",
+    "build:backend": "cd backend && npx tsc",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cd backend && node dist/server.js",
+    "vercel-build": "cd backend && npm ci && npx tsc && cd ../frontend && npm ci && npm run build"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "keywords": ["taskflow", "task-management", "mern", "vercel"],
+  "license": "ISC"
 }

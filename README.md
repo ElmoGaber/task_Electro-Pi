@@ -1,313 +1,222 @@
-# Task Manager — MERN Full-Stack Application
+# TaskFlow — MERN SaaS with Kanban, AI Assistant & i18n
 
-A professional full-stack task management application built with **MongoDB, Express.js, React (TypeScript), and Node.js**. Designed for the technical assessment with strong emphasis on code quality, TypeScript safety, security, and user experience.
+A production-grade task management SaaS built with **MongoDB, Express.js 5, React 19, and Node.js** — deployable on **Vercel** from a single GitHub repository. Features a kanban board with drag & drop, real-time collaboration, AI-powered suggestions, RTL/LTR i18n (Arabic/English), and 10+ unique dashboard pages.
 
 ---
 
-## ✨ Features
+## Architecture
+
+```
+taskflow/
+├── api/
+│   └── index.js              # Vercel serverless entry (imports backend/dist/app)
+├── backend/
+│   └── src/
+│       ├── config/db.ts       # MongoDB connection (cached singleton for serverless)
+│       ├── controllers/       # Auth, Task, Upload, Assistant
+│       ├── errors/            # AppError, ValidationError, UnauthorizedError, NotFoundError
+│       ├── middleware/        # Auth (JWT), CSRF, Rate limiters, Error handler, Validation
+│       ├── models/            # User, Task (Mongoose schemas)
+│       ├── routes/            # /api/auth, /api/tasks, /api/upload, /api/assistant
+│       ├── utils/             # Constants (task statuses/priorities), Seed data
+│       ├── validators/        # express-validator chains
+│       ├── app.ts             # Express application setup
+│       └── server.ts          # Local development server (Socket.IO + DB connect)
+├── frontend/
+│   └── src/
+│       ├── api/client.ts      # Axios instance (baseURL from VITE_API_URL)
+│       ├── components/        # 25+ reusable components
+│       ├── context/           # AuthContext, ThemeContext
+│       ├── hooks/             # React Query hooks, useSocket, useDebounce, useAssistant
+│       ├── i18n/              # en.json, ar.json, i18n configuration
+│       ├── lib/               # Constants, fakeData.ts (500+ mock entries)
+│       ├── pages/             # 13 pages (Overview, Projects, Tasks, Kanban, etc.)
+│       ├── types/             # TypeScript interfaces
+│       ├── App.tsx            # Router with AnimatePresence transitions
+│       └── index.css          # Full design system (dark/light, responsive)
+├── vercel.json                # Vercel deployment configuration
+├── package.json               # Root scripts
+└── .env.example               # Environment variable template
+```
+
+---
+
+## Features
 
 ### Core
-- User registration & JWT-based authentication
-- Full task CRUD with ownership scoping (each user sees only their tasks)
-- Task fields: title, description, status, priority, due date
-- Search by title (debounced) and filter by status/priority
-- URL query params persistence for filters
+- **Kanban Board** — 4 columns (To Do, In Progress, Editing, Done) with drag & drop via @dnd-kit
+- **Task CRUD** — Full create/read/update/delete with image upload and voice recording
+- **Authentication** — JWT-based with bcrypt password hashing, protected routes
+- **Real-time** — Socket.IO presence, typing indicators (development only)
+- **AI Assistant** — Rule-based suggestions (overdue tasks, completion %, backlog tips)
+
+### Dashboard Pages (10+)
+| Page | Description |
+|------|-------------|
+| **Overview** | Stats grid, project timeline, activity feed, today's tasks, team, events |
+| **Projects** | Grid/kanban/table views, filters, search, sort, pagination, create modal |
+| **Tasks** | Original CRUD grid with kanban, drag & drop, filters, export (CSV/JSON/PDF) |
+| **Kanban** | Full drag & drop board with 4 status columns |
+| **Activity** | Grouped timeline (This Hour/Today/Older), type filters, JSON export |
+| **Messages** | Full chat UI with conversation sidebar and send input |
+| **Members** | Grid/list views, role filters, department summary, invite modal |
+| **Calendar** | Month grid with dot indicators, date selection, event side panel, create modal |
+| **Analytics** | Recharts bar + pie charts with stat cards |
+| **Settings** | 6 tabs — General, Notifications, Security, Appearance (i18n, font size, compact), Billing, API |
+| **Notifications** | Type filters, bulk selection, mark read/unread, batch delete |
 
 ### UX
-- Skeleton loading cards during data fetch
-- Empty state with illustration and clear call-to-action
-- Delete confirmation dialog
-- Toast notifications (success/error) via Sonner
-- Responsive design (mobile + desktop)
-- Loading, error, empty, and validation states on every view
+- AnimatePresence page transitions
+- ⌘K global search overlay
+- Responsive sidebar with hamburger toggle (<900px)
+- Loading skeletons, empty states, error states
+- Dark/light theme with max-contrast accessibility
+- RTL/LTR i18n (Arabic/English)
 
-### Security & Middleware
-- Password hashing with bcryptjs (10 rounds)
-- JWT token expiry (1 day)
-- Rate limiting on login endpoint (express-rate-limit)
+### Security
 - Helmet security headers
 - CORS with allow-list
-- Request validation (express-validator) separated from route handlers
-- Custom error classes: `AppError`, `ValidationError`, `UnauthorizedError`, `NotFoundError`
-- Global error handler middleware
-<img width="1719" height="866" alt="image" src="https://github.com/user-attachments/assets/2776cbe2-1f27-4e21-8720-693c74eb569f" />
-
-### Performance
-- Compression (gzip) via `compression`
-- MongoDB indexes on Task: user+title, user+status, user+priority, composite
+- Rate limiting (login + API)
+- CSRF double-submit cookie pattern
+- Request validation (express-validator)
 
 ---
 
-## 🏗 Architecture
-
-```
-task-manager/
-├── backend/                          # Express API (TypeScript)
-│   ├── src/
-│   │   ├── config/db.ts              # MongoDB connection
-│   │   ├── controllers/
-│   │   │   ├── authController.ts     # Register / Login
-│   │   │   └── taskController.ts     # CRUD + search/filter
-│   │   ├── errors/AppError.ts        # Custom error hierarchy
-│   │   ├── middleware/
-│   │   │   ├── authMiddleware.ts     # JWT verification
-│   │   │   ├── errorHandler.ts       # Global error handler
-│   │   │   ├── notFound.ts           # 404 handler
-│   │   │   ├── rateLimiters.ts       # Login rate limiter
-│   │   │   └── validateRequest.ts    # express-validator runner
-│   │   ├── models/
-│   │   │   ├── User.ts               # User schema (timestamps)
-│   │   │   └── Task.ts               # Task schema (indexes, timestamps)
-│   │   ├── routes/
-│   │   │   ├── authRoutes.ts         # /api/auth/*
-│   │   │   └── taskRoutes.ts         # /api/tasks/* (protected)
-│   │   ├── utils/constants.ts        # Enums for status/priority
-│   │   ├── validators/
-│   │   │   ├── authValidators.ts     # Auth validation chains
-│   │   │   └── taskValidators.ts     # Task validation chains
-│   │   ├── app.ts                    # Express app setup
-│   │   └── server.ts                 # Entry point
-│   ├── tsconfig.json
-│   └── package.json
-│
-├── frontend/                         # React SPA (TypeScript, Vite)
-│   ├── src/
-│   │   ├── api/client.ts             # Axios instance + interceptors
-│   │   ├── components/
-│   │   │   ├── AuthForm.tsx          # Login/Register form (RHF + Zod)
-│   │   │   ├── ConfirmDialog.tsx     # Delete confirmation modal
-│   │   │   ├── EmptyState.tsx        # Empty state with SVG + CTA
-│   │   │   ├── ProtectedRoute.tsx    # Auth guard
-│   │   │   ├── SkeletonCard.tsx      # Loading skeleton
-│   │   │   ├── TaskFilters.tsx       # Search + filter bar (debounced)
-│   │   │   ├── TaskForm.tsx          # Create/Edit form (RHF + Zod)
-│   │   │   └── TaskList.tsx          # Task cards + skeleton/empty/error
-│   │   ├── context/
-│   │   │   ├── AuthContext.ts        # Context definition
-│   │   │   ├── AuthProvider.tsx      # Context provider
-│   │   │   └── useAuth.ts           # Context hook
-│   │   ├── hooks/
-│   │   │   ├── useDebounce.ts        # Debounce hook (300ms)
-│   │   │   └── useTasks.ts          # React Query hooks
-│   │   ├── lib/constants.ts          # Shared constants
-│   │   ├── pages/
-│   │   │   ├── DashboardPage.tsx     # Main dashboard (React Query)
-│   │   │   ├── LoginPage.tsx         # Login (RHF + Zod + Sonner)
-│   │   │   └── RegisterPage.tsx      # Register (RHF + Zod + Sonner)
-│   │   ├── types/index.ts            # TypeScript interfaces
-│   │   ├── App.tsx                   # Router setup
-│   │   ├── index.css                 # Global styles (skeleton, dialog, empty)
-│   │   └── main.tsx                  # Entry point (QueryClient + Router + Auth)
-│   ├── index.html
-│   ├── tsconfig.json
-│   ├── vite.config.ts
-│   └── package.json
-│
-├── .env.example                      # Environment variable template
-├── .gitignore
-└── README.md
-```
-
----
-
-## 🚀 Quick Start
+## Running Locally
 
 ### Prerequisites
-- **Node.js** 18+ (LTS recommended)
-- **npm** 9+
-- **MongoDB** instance (local or [Atlas](https://www.mongodb.com/atlas))
+- Node.js 18+
+- MongoDB (local or Atlas)
 
-### 1. Clone & Install
+### Setup
 
 ```bash
-cd task-manager
+# Clone and install
+git clone <repo-url>
+cd taskflow
 
 # Backend
 cd backend
+cp .env.example .env
 npm install
 
 # Frontend
 cd ../frontend
+cp .env.example .env
 npm install
 ```
 
-### 2. Environment Variables
+### Environment Variables
 
-Copy `.env.example` files:
-
-```bash
-cp .env.example backend/.env
-cp .env.example frontend/.env
-```
-
-Edit `backend/.env`:
-
+**`backend/.env`:**
 ```env
 PORT=5000
-MONGO_URI=mongodb://127.0.0.1:27017/task-manager
-JWT_SECRET=your-secure-random-secret
+MONGO_URI=mongodb://127.0.0.1:27017/taskmanager
+JWT_SECRET=your-secure-secret
 CLIENT_URL=http://localhost:5173
-LOGIN_RATE_LIMIT_WINDOW_MS=900000
-LOGIN_RATE_LIMIT_MAX=10
 ```
 
-Edit `frontend/.env`:
-
+**`frontend/.env`:**
 ```env
 VITE_API_URL=http://localhost:5000/api
 ```
 
-### 3. Run
+### Start
 
 ```bash
 # Terminal 1 — Backend (http://localhost:5000)
-cd backend
-npm run dev
+cd backend && npm run dev
 
 # Terminal 2 — Frontend (http://localhost:5173)
-cd frontend
-npm run dev
+cd frontend && npm run dev
 ```
 
-### 4. Build for Production
+The backend auto-seeds a demo user and admin on first run:
+- **Demo**: `demo@taskflow.dev` / `demo123456`
+- **Admin**: `admin@taskflow.dev` / `admin123456`
+
+---
+
+## Deploying to Vercel
+
+### 1. Push to GitHub
 
 ```bash
-cd backend && npm run build
-cd frontend && npm run build
+git add .
+git commit -m "Ready for Vercel deployment"
+git push
 ```
+
+### 2. Import into Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project**
+2. Import your GitHub repository
+3. Configure:
+
+| Setting | Value |
+|---------|-------|
+| Framework | **Other** |
+| Root Directory | Repository root |
+| Build Command | (auto from vercel.json) |
+| Output Directory | (auto from vercel.json) |
+
+### 3. Add Environment Variables
+
+| Variable | Value |
+|----------|-------|
+| `MONGO_URI` | `mongodb+srv://<user>:<pass>@cluster0.xxxxx.mongodb.net/taskmanager` |
+| `JWT_SECRET` | Your secure random secret |
+| `CLIENT_URL` | `https://your-app.vercel.app` |
+| `NODE_ENV` | `production` |
+| `VITE_API_URL` | `/api` |
+
+### 4. Deploy
+
+Click **Deploy**. No manual code edits after deployment.
 
 ---
 
-## 📡 API Reference
+## API Endpoints
 
-### Health
-
-| Method | Endpoint       | Description        |
-|--------|---------------|--------------------|
-| GET    | `/api/health` | Server health check |
-
-### Auth
-
-| Method | Endpoint             | Description          | Rate Limited |
-|--------|---------------------|----------------------|-------------|
-| POST   | `/api/auth/register` | Create new account   | No          |
-| POST   | `/api/auth/login`    | Login & get JWT      | Yes (10/15m) |
-
-**Register Request:**
-```json
-{ "name": "John", "email": "john@example.com", "password": "secret123" }
-```
-
-**Login Response:**
-```json
-{
-  "message": "Logged in successfully.",
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": { "id": "...", "name": "John", "email": "john@example.com" }
-}
-```
-
-### Tasks (Protected — requires `Authorization: Bearer <token>`)
-
-| Method | Endpoint              | Description                 |
-|--------|----------------------|-----------------------------|
-| GET    | `/api/tasks`          | List tasks (with filters)   |
-| POST   | `/api/tasks`          | Create a task               |
-| PUT    | `/api/tasks/:id`      | Update a task               |
-| DELETE | `/api/tasks/:id`      | Delete a task               |
-
-**Query Parameters (GET /api/tasks):**
-- `search` — Filter by title (case-insensitive regex)
-- `status` — `To Do`, `In Progress`, `Done`
-- `priority` — `Low`, `Medium`, `High`
-
-**Task Object:**
-```json
-{
-  "_id": "...",
-  "user": "...",
-  "title": "Fix login bug",
-  "description": "Handle edge case in auth flow",
-  "status": "In Progress",
-  "priority": "High",
-  "dueDate": "2025-08-15T00:00:00.000Z",
-  "createdAt": "2025-07-24T12:00:00.000Z",
-  "updatedAt": "2025-07-24T12:30:00.000Z"
-}
-```
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/health` | No | Health check |
+| POST | `/api/auth/register` | No | Create account |
+| POST | `/api/auth/login` | No (rate-limited) | Login |
+| GET | `/api/tasks` | JWT | List tasks (filters: search, status, priority) |
+| POST | `/api/tasks` | JWT | Create task |
+| PUT | `/api/tasks/:id` | JWT | Update task |
+| DELETE | `/api/tasks/:id` | JWT | Delete task |
+| GET | `/api/tasks/all` | Admin | List all tasks |
+| POST | `/api/upload` | JWT | Upload file |
+| GET | `/api/assistant/suggestions` | JWT | AI suggestions |
 
 ---
 
-## 🛠 Tech Stack
+## Production Notes
 
-| Layer      | Technology                          |
-|-----------|-------------------------------------|
-| Frontend  | React 19, TypeScript, Vite 8        |
-| State     | TanStack React Query v5, Context    |
-| Forms     | React Hook Form v7, Zod v4          |
-| Routing   | React Router v7                     |
-| Styling   | Plain CSS (responsive)              |
-| Backend   | Express 5, TypeScript, Mongoose 9   |
-| Auth      | JWT (jsonwebtoken), bcryptjs        |
-| Security  | Helmet, CORS, express-rate-limit    |
-| Logging   | Morgan                              |
-| Compress  | compression (gzip)                  |
+- **Socket.IO** is disabled in production (serverless doesn't support persistent WebSocket connections). The app works fully without it — all state is managed via React Query.
+- **File uploads** use `/tmp` in production. Files are transient and will be lost on function cold starts. For production, integrate with S3/Cloudinary.
+- **Rate limiting** is in-memory and resets on function cold starts. For production, use an external store (Redis) with `express-rate-limit`.
+- **MongoDB connection** is cached globally across serverless warm starts via a singleton pattern.
 
 ---
 
-## ✅ What's Been Implemented
+## Environment Variables
 
-| Requirement | Status |
-|------------|--------|
-| User registration & login | ✅ |
-| JWT authentication | ✅ |
-| Protected API endpoints | ✅ |
-| User-scoped task ownership | ✅ |
-| Full task CRUD | ✅ |
-| Task fields (title, description, status, priority, due date) | ✅ |
-| Status options (To Do, In Progress, Done) | ✅ |
-| Priority options (Low, Medium, High) | ✅ |
-| Search by title | ✅ |
-| Filter by status & priority | ✅ |
-| URL query params for filters | ✅ |
-| Debounced search (300ms) | ✅ |
-| Responsive UI (mobile + desktop) | ✅ |
-| Loading / error / empty / validation states | ✅ |
-| Skeleton loading cards | ✅ |
-| Empty state with illustration & CTA | ✅ |
-| Toast notifications (Sonner) | ✅ |
-| Delete confirmation dialog | ✅ |
-| TypeScript (frontend + backend) | ✅ |
-| React Query data fetching | ✅ |
-| React Hook Form + Zod validation | ✅ |
-| Password hashing (bcryptjs) | ✅ |
-| Rate limiting on login | ✅ |
-| Helmet security headers | ✅ |
-| CORS with allow-list | ✅ |
-| Request validation (separate validators) | ✅ |
-| Custom error classes hierarchy | ✅ |
-| Global error handler | ✅ |
-| MongoDB indexes | ✅ |
-| Compression (gzip) | ✅ |
-| Environment variable templates | ✅ |
-| Professional README with API docs | ✅ |
-| Git commit history | ✅ |
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `MONGO_URI` | Production | MongoDB Atlas connection string |
+| `JWT_SECRET` | Yes | Secret key for JWT signing |
+| `CLIENT_URL` | Yes | Frontend origin for CORS |
+| `NODE_ENV` | Yes | `development` or `production` |
+| `VITE_API_URL` | Frontend | API base URL (use `/api` in production) |
+| `PORT` | No | Backend port (default 5000) |
 
 ---
 
-## 📝 AI Disclosure
+## AI Disclosure
 
-- **AI Assistance**: GitHub Copilot-style tooling was used during development for scaffolding, boilerplate generation, and code completion.
-- **Libraries**: All libraries used (React, Express, Mongoose, etc.) are open-source and used as per their licenses.
+- **AI Assistance**: AI tooling was used during development for scaffolding, boilerplate generation, and code completion.
+- **Libraries**: All libraries used are open-source and used as per their licenses.
 - **Human Review**: Every line of code has been reviewed and tested by a human developer.
-
----
-
-## 🐛 Known Issues
-
-- No automated test suite (not implemented — bonus feature)
-- No pagination (tasks display in a single list)
-- No drag-and-drop task reordering
-- No file attachments
-- No Docker setup
-- No deployment script
