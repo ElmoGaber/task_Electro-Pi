@@ -5,6 +5,7 @@ import { toast } from 'sonner'
 import api from '@/api/client'
 import { AuthForm } from '@/components/AuthForm'
 import { useAuth } from '@/context/useAuth'
+import { mockRegister, isNetworkError } from '@/lib/mockAuth'
 import type { AuthFormValues, AuthResponse } from '@/types'
 
 export function RegisterPage() {
@@ -23,6 +24,18 @@ export function RegisterPage() {
       toast.success(t('auth.registerSuccess'))
       navigate('/')
     } catch (error: unknown) {
+      if (isNetworkError(error)) {
+        try {
+          const data = mockRegister(values)
+          login(data)
+          toast.success(t('auth.registerSuccess'))
+          navigate('/')
+          return
+        } catch (mockErr) {
+          setServerError((mockErr as Error).message)
+          return
+        }
+      }
       const msg =
         (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         'Failed to register.'
