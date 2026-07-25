@@ -2,23 +2,18 @@ const { connectDatabase } = require('../backend/dist/config/db')
 const { autoSeed } = require('../backend/dist/utils/seed')
 const app = require('../backend/dist/app')
 
-let initializing = false
+let seeded = false
 
-app.use(async (req, res, next) => {
-  if (initializing) {
-    return res.status(503).json({ success: false, message: 'Server is starting up. Please try again in a moment.' })
-  }
+module.exports = async (req, res) => {
   try {
     await connectDatabase()
-    if (!initializing) {
-      initializing = true
+    if (!seeded) {
+      seeded = true
       await autoSeed().catch(() => {})
     }
-    next()
+    return app(req, res)
   } catch (err) {
-    console.error('Database connection error:', err)
-    res.status(500).json({ success: false, message: 'Database connection failed.' })
+    console.error('Serverless handler error:', err)
+    res.status(500).json({ success: false, message: 'Internal server error.' })
   }
-})
-
-module.exports = app
+}

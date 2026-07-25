@@ -43,12 +43,16 @@ export { io }
 const startServer = async (): Promise<void> => {
   await connectDatabase()
   await autoSeed()
-  server.listen(port, () => {
-    console.log(`Backend server listening on port ${port}`)
-  })
+  if (process.env.NODE_ENV !== 'production') {
+    server.listen(port, () => {
+      console.log(`Backend server listening on port ${port}`)
+    })
+  }
 }
 
-startServer().catch((error: unknown) => {
-  console.error('Failed to start server:', error)
-  process.exit(1)
-})
+if (process.env.NODE_ENV !== 'production') {
+  startServer().catch((error: unknown) => {
+    console.error('Failed to start server:', error)
+    process.exit(1)
+  })
+}

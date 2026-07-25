@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "TaskFlow — Full-stack task management SaaS with kanban, AI assistant, i18n, and real-time features.",
   "scripts": {
-    "dev": "concurrently \"cd backend && npm run dev\" \"cd frontend && npm run dev\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "cd backend && npm ci && npx tsc && cd ../frontend && npm ci && npm run build",
-    "build:backend": "cd backend && npx tsc",
-    "build:frontend": "cd frontend && npm run build",
-    "start": "cd backend && node dist/server.js",
-    "vercel-build": "cd backend && npm ci && npx tsc && cd ../frontend && npm ci && npm run build"
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build": "npm --prefix backend install && npm --prefix backend run build && npm --prefix frontend install && npm --prefix frontend run build",
+    "build:backend": "npm --prefix backend run build",
+    "build:frontend": "npm --prefix frontend run build",
+    "start": "node backend/dist/server.js",
+    "vercel-build": "npm --prefix backend install && npm --prefix backend run build && npm --prefix frontend install && npm --prefix frontend run build"
   },
   "keywords": ["taskflow", "task-management", "mern", "vercel"],
   "license": "ISC"
