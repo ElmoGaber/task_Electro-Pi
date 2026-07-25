@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import api from '@/api/client'
 import { AuthForm } from '@/components/AuthForm'
 import { useAuth } from '@/context/useAuth'
-import { mockRegister, isNetworkError } from '@/lib/mockAuth'
+import { mockRegister, shouldUseMockFallback } from '@/lib/mockAuth'
 import type { AuthFormValues, AuthResponse } from '@/types'
 
 export function RegisterPage() {
@@ -24,7 +24,7 @@ export function RegisterPage() {
       toast.success(t('auth.registerSuccess'))
       navigate('/')
     } catch (error: unknown) {
-      if (isNetworkError(error)) {
+      if (shouldUseMockFallback(error)) {
         try {
           const data = mockRegister(values)
           login(data)

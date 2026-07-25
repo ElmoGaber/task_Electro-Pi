@@ -57,6 +57,7 @@ export function mockLogin(email: string, password: string) {
   throw new Error('Invalid email or password.')
 }
 
-export function isNetworkError(error: unknown): boolean {
-  return !(error as { response?: unknown })?.response
+export function shouldUseMockFallback(error: unknown): boolean {
+  const e = error as { response?: { status?: number }; message?: string }
+  return !e.response || e.response.status === 500
 }
