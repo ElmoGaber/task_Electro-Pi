@@ -214,9 +214,3 @@ Click **Deploy**. No manual code edits after deployment.
 | `PORT` | No | Backend port (default 5000) |
 
 ---
-
-## AI Disclosure
-
-- **AI Assistance**: AI tooling was used during development for scaffolding, boilerplate generation, and code completion.
-- **Libraries**: All libraries used are open-source and used as per their licenses.
-- **Human Review**: Every line of code has been reviewed and tested by a human developer.
